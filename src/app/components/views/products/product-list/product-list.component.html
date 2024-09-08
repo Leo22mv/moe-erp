@@ -1,0 +1,86 @@
+<div class="form-floating">
+    <input (change)="onSearch()" [(ngModel)]="searchQuery" name="floatingSearch" type="text" class="form-control" id="floatingSearch" placeholder="Buscar">
+    <label for="floatingSearch">Buscar</label>
+</div>
+
+<div class="spinner-border" role="status" *ngIf="loading">
+    <span class="visually-hidden">Loading...</span>
+</div>
+
+<!-- <ul class="list-group list-group-flush" *ngIf="!loading">
+    <li class="list-group-item list-group-item-secondary" *ngFor="let product of products"> -->
+        <ul class="list-group list-group-horizontal" *ngFor="let product of filteredProducts">
+            <li class="list-group-item product-data {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}">Nombre: <strong>{{ product.name }}</strong> | Marca: <strong>{{ product.brand ? product.brand : "Sin marca" }}</strong> | Precio de costo: <strong>${{ product.price }}</strong> | Precio de venta: <strong>${{ product.sellPrice }}</strong> | Stock: <strong>{{ product.stock }}</strong></li>
+            <a class="list-group-item list-group-item-primary list-group-item-action" data-bs-toggle="modal" data-bs-target="#updateModal" (click)="updateFormWithProduct(product.id, product.name, product.price, product.sellPrice, product.stock, product.barcode, product.brand, product.stock_limit)">MODIFICAR</a>
+            <a class="list-group-item list-group-item-danger list-group-item-action" data-bs-toggle="modal" data-bs-target="#deleteModal" (click)="updateIdForDelete(product.id)">ELIMINAR</a>
+        </ul>
+    <!-- </li>
+</ul> -->
+
+<div class="alert alert-secondary" role="alert" *ngIf="empty">
+    Lista de productos vacía
+</div>
+<div class="alert alert-secondary" role="alert" *ngIf="withoutResults">
+    No se encontraron resultados
+</div>
+
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="updateModalLabel">Modificar producto</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="addProductForm">
+                <div class="form-floating">
+                    <input name="floatingName" [(ngModel)]="updateForm.name" type="text" class="form-control" id="floatingName" placeholder="Nombre" required>
+                    <label for="floatingInput">*Nombre</label>
+                </div>
+                <div class="form-floating">
+                    <input name="floatingBrand" [(ngModel)]="updateForm.brand" type="text" class="form-control" id="floatingBrand" placeholder="Marca">
+                    <label for="floatingBrand">Marca</label>
+                </div>
+                <div class="form-floating">
+                    <input name="floatingPrice" [(ngModel)]="updateForm.price" type="number" class="form-control" id="floatingPrice" placeholder="Precio" required>
+                    <label for="floatingPrice">*Precio de costo</label>
+                </div>
+                <div class="form-floating">
+                    <input name="floatingSellPrice" [(ngModel)]="updateForm.sellPrice" type="number" class="form-control" id="floatingSellPrice" placeholder="Precio de venta" required>
+                    <label for="floatingSellPrice">*Precio de venta</label>
+                </div>
+                <div class="form-floating">
+                    <input name="floatingStock" [(ngModel)]="updateForm.stock" type="number" class="form-control" id="floatingStock" placeholder="Stock" required>
+                    <label for="floatingStock">*Stock</label>
+                </div>
+                <div class="form-floating">
+                    <input name="floatingStockLimit" [(ngModel)]="updateForm.stock_limit" type="number" class="form-control" id="floatingStockLimit" placeholder="Límite de alerta de stock" required>
+                    <label for="floatingStockLimit">*Límite de alerta de stock</label>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" (click)="updateProduct()">Guardar</button>
+        </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="deleteModalLabel">Eliminar producto</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            Seguro que quiere eliminar producto? Esta acción es irreversible
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Conservar</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" (click)="deleteProduct()">Eliminar</button>
+        </div>
+        </div>
+    </div>
+</div>

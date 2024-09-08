@@ -1,0 +1,40 @@
+<form id="addProductForm">
+    <div class="form-floating">
+        <input name="floatingName" [(ngModel)]="form.name" type="text" class="form-control" id="floatingName" placeholder="Nombre" required>
+        <label for="floatingInput">*Nombre</label>
+    </div>
+    <div class="form-floating">
+        <input name="floatingBrand" [(ngModel)]="form.brand" type="text" class="form-control" id="floatingBrand" placeholder="Marca">
+        <label for="floatingBrand">Marca</label>
+    </div>
+    <div class="form-floating">
+        <input name="floatingPrice" [(ngModel)]="form.price" type="number" class="form-control" id="floatingPrice" placeholder="Precio" required>
+        <label for="floatingPrice">*Precio de costo</label>
+    </div>
+    <div class="form-floating">
+        <input name="floatingSellPrice" [(ngModel)]="form.sellPrice" type="number" class="form-control" id="floatingSellPrice" placeholder="Precio de venta" required>
+        <label for="floatingSellPrice">*Precio de venta</label>
+    </div>
+    <div class="form-floating">
+        <input name="floatingStock" [(ngModel)]="form.stock" type="number" class="form-control" id="floatingStock" placeholder="Stock" required>
+        <label for="floatingStock">*Stock</label>
+    </div>
+    <div class="form-floating">
+        <input name="floatingStockLimit" [(ngModel)]="form.stock_limit" type="number" class="form-control" id="floatingStockLimit" placeholder="Límite de alerta de stock" required>
+        <label for="floatingStockLimit">*Límite de alerta de stock</label>
+    </div>
+    <div class="form-floating">
+        <input name="floatingBarcode" [(ngModel)]="form.barcode" type="text" class="form-control" id="floatingBarcode" placeholder="Código de barras">
+        <label for="floatingBarcode">Código de barras</label>
+    </div>
+</form>
+
+<div class="alert alert-success" role="alert" *ngIf="added">
+    Producto agregado correctamente
+</div>
+
+<div class="alert alert-danger" role="alert" *ngIf="emptyFieldsError">
+    Complete todos los campos obligatorios (*) para continuar
+</div>
+
+<button class="btn btn-dark btn-lg" (click)="addProduct()">Agregar</button>

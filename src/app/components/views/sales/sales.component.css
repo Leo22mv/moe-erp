@@ -1,0 +1,30 @@
+h1, .btn-lg {
+    margin: 15px 0 0 15px;
+}
+.card-header {
+    padding: 0;
+}
+.card-header .btn {
+    margin: 10px 0 10px 10px;
+}
+.card {
+    margin: 0;
+    padding: 0;
+}
+.card-body {
+    padding: 0;
+}
+#floatingProductName {
+    margin-bottom: 10px;
+}
+.row {
+    margin: 0;
+    padding: 0;
+}
+.col-6 {
+    margin: 0;
+    padding: 15px;
+}
+.btn-close {
+    margin-right: 10px;
+}

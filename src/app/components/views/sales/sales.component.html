@@ -1,0 +1,39 @@
+<h1>Ventas</h1>
+<button class="btn btn-dark btn-lg" (click)="addSale()" (keydown.enter)="$event.preventDefault()">Agregar venta</button>
+<div class="row">
+    <div class="col-6" *ngFor="let sale of sales; let i = index" [attr.data-sale-index]="i">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <button class="btn btn-dark" (click)="addProductToSale(sale, i)">Agregar producto</button>
+                    <button class="btn btn-success" (click)="insertSale(sale)">Guardar venta</button>
+                    <button class="btn btn-danger" (click)="clearSale(sale)">Cancelar venta</button>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" (click)="cancelSale(sale)"></button>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item" *ngFor="let product of sale.products; let i = index; trackBy: trackByProduct">
+                        <div class="form-floating" *ngIf="!product.id">
+                            <input #floatingProduct [(ngModel)]="product.barcode" (keydown)="onEnter($event, product, sale)" name="floatingProduct" type="text" class="form-control" id="floatingProduct" placeholder="Código de barras">
+                            <label for="floatingProduct">Código de barras</label>
+                        </div>
+                        <div *ngIf="product.name">
+                            <div class="form-floating">
+                                <input name="floatingProductName" type="text" class="form-control" id="floatingProductName" placeholder="{{ product.name }} | ${{ product.price }}/u | Total: ${{ product.price * product.quantity }}" disabled>
+                                <label for="floatingProductName">{{ product.name }} | ${{ product.price }}/u | Total: ${{ product.price * product.quantity }}</label>
+                            </div>
+                            <div class="form-floating">
+                                <input (change)="onUpdateQuantity(product, sale, product.quantity)" [(ngModel)]="product.newQuantity" name="floatingProductQuantity" type="number" class="form-control" id="floatingProductQuantity" placeholder="Cantidad">
+                                <label for="floatingProductQuantity">Cantidad</label>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <h3>Total: ${{ sale.total }}</h3>
+            </div>
+        </div>
+    </div>
+</div>

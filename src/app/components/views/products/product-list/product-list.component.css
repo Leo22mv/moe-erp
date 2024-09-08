@@ -1,0 +1,21 @@
+.spinner-border {
+    margin: 15px 0 0 15px;
+}
+.alert {
+    margin: 15px;
+}
+.form-floating {
+    margin: 15px;
+}
+.list-group {
+    margin: 0 15px 0 15px;
+}
+.product-data {
+    width: 1890px;
+}
+a {
+    cursor: pointer;
+}
+.list-group-item-action {
+    width: min-content;
+}
