@@ -11,7 +11,7 @@
     <li class="list-group-item list-group-item-secondary" *ngFor="let product of products"> -->
         <ul class="list-group list-group-horizontal" *ngFor="let product of filteredProducts">
             <li class="list-group-item product-data {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}">Nombre: <strong>{{ product.name }}</strong> | Marca: <strong>{{ product.brand ? product.brand : "Sin marca" }}</strong> | Precio de costo: <strong>${{ product.price }}</strong> | Precio de venta: <strong>${{ product.sellPrice }}</strong> | Stock: <strong>{{ product.stock }}</strong></li>
-            <a class="list-group-item list-group-item-primary list-group-item-action" data-bs-toggle="modal" data-bs-target="#updateModal" (click)="updateFormWithProduct(product.id, product.name, product.price, product.sellPrice, product.stock, product.barcode, product.brand, product.stock_limit)">MODIFICAR</a>
+            <a class="list-group-item list-group-item-primary list-group-item-action" data-bs-toggle="modal" data-bs-target="#updateModal" (click)="updateFormWithProduct(product.id, product.name, product.price, product.sellPrice, product.stock, product.barcode, product.brand, product.stock_limit); updateIdForDelete(product.id)">MODIFICAR</a>
             <a class="list-group-item list-group-item-danger list-group-item-action" data-bs-toggle="modal" data-bs-target="#deleteModal" (click)="updateIdForDelete(product.id)">ELIMINAR</a>
         </ul>
     <!-- </li>
@@ -75,7 +75,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            Seguro que quiere eliminar producto? Esta acción es irreversible
+            Seguro que quiere eliminar el producto? Esta acción es irreversible
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Conservar</button>

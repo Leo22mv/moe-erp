@@ -1,6 +1,27 @@
 const { app, BrowserWindow, Menu } = require('electron/main');
 const path = require('node:path');
-const { createTable, insertProduct, getAllProducts, updateProduct, deleteProduct, getProductByBarcode, insertSale, createSalesTable, createSaleProductsTable, getSalesWithDetails, getSalesByDate, searchProducts } = require('./db/db');
+const { createTable,
+        insertProduct,
+        getAllProducts,
+        updateProduct,
+        deleteProduct,
+        getProductByBarcode,
+        insertSale,
+        createSalesTable,
+        createSaleProductsTable,
+        getSalesWithDetails,
+        getSalesByDate,
+        searchProducts,
+        createPromoProductsTable,
+        createPromosTable,
+        addPromo,
+        getPromosWithProducts,
+        searchPromos,
+        deletePromo,
+        createSaleAmountsTable,
+        createSalePromosTable,
+        getProductsByPromo
+      } = require('./db/db');
 const { ipcMain } = require('electron');
 
 function createWindow () {
@@ -22,6 +43,10 @@ app.whenReady().then(() => {
   createTable();
   createSalesTable();
   createSaleProductsTable();
+  createPromosTable();
+  createPromoProductsTable();
+  createSaleAmountsTable();
+  createSalePromosTable();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -111,6 +136,69 @@ ipcMain.on('search-products', (event, query) => {
       event.reply('search-products-response', { success: false, error: 'Error al obtener búsqueda de productos: ' + err.message });
     } else {
       event.reply('search-products-response', { success: true, data: results });
+    }
+  });
+});
+
+ipcMain.on('search-products-2', (event, query) => {
+  searchProducts(query, (err, results) => {
+    if (err) {
+      event.reply('search-products-2-response', { success: false, error: 'Error al obtener búsqueda de productos: ' + err.message });
+    } else {
+      event.reply('search-products-2-response', { success: true, data: results });
+    }
+  });
+});
+
+ipcMain.on('get-promos', (event) => {
+  getPromosWithProducts((err, promos) => {
+    if (err) {
+        console.error('Error retrieving promos:', err.message);
+        event.reply('get-promos-response', { success: false, error: err.message });
+    } else {
+        event.reply('get-promos-response', { success: true, data: promos });
+    }
+  });
+});
+
+ipcMain.on('add-promo', (event, promo) => {
+  addPromo(promo, (err) => {
+    if (err) {
+        console.error('Error al registrar promo:', err.message);
+        event.reply('add-promo-response', 'Error al registrar la promo');
+    } else {
+        console.log('Promo agregada correctamente')
+        event.reply('add-promo-response', 'Promo agregada correctamente');
+    }
+  });
+});
+
+ipcMain.on('search-promos', (event, query) => {
+  searchPromos(query, (err, results) => {
+    if (err) {
+      event.reply('search-promos-response', { success: false, error: 'Error al obtener búsqueda de promos: ' + err.message });
+    } else {
+      event.reply('search-promos-response', { success: true, data: results });
+    }
+  });
+});
+
+ipcMain.on('delete-promo', (event, promoId) => {
+  deletePromo(promoId, (err) => {
+    if (err) {
+      event.reply('delete-promo-response', { success: false, error: 'Error al eliminar promo: ' + err.message });
+    } else {
+      event.reply('delete-promo-response', { success: true, data: 'Promo eliminada correctamente' });
+    }
+  });
+});
+
+ipcMain.on('get-products-by-promo', (event, promoId) => {
+  getProductsByPromo(promoId, (err, sales) => {
+    if (err) {
+      event.reply('get-products-by-promo-response', { success: false, error: 'Error al obtener ventas por fecha: ' + err.message });
+    } else {
+      event.reply('get-products-by-promo-response', { success: true, data: sales });
     }
   });
 });

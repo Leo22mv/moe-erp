@@ -1,0 +1,37 @@
+<div class="spinner-border" role="status" *ngIf="loading">
+    <span class="visually-hidden">Loading...</span>
+</div>
+
+<ul class="list-group list-group-horizontal" *ngFor="let promo of promos">
+    <li class="list-group-item product-data list-group-item-secondary">
+        Nombre: <strong>{{ promo.name }}</strong> | Precio: $<strong>{{ promo.price }}</strong>
+        <ul class="list-group">
+            <li class="list-group-item" *ngFor="let product of promo.products">
+                Producto: <strong>{{ product.name }}</strong> | Cantidad: <strong>{{ product.quantity }}</strong>
+            </li>
+        </ul>
+    </li>
+    <a class="list-group-item list-group-item-danger list-group-item-action" data-bs-toggle="modal" data-bs-target="#deleteModal" (click)="updateIdForDelete(promo.id)">ELIMINAR</a>
+</ul>
+
+<div class="alert alert-secondary" role="alert" *ngIf="empty">
+    Lista de promos vacía
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="deleteModalLabel">Eliminar promo</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            Seguro que quiere eliminar la promo? Esta acción es irreversible
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Conservar</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" (click)="deletePromo()">Eliminar</button>
+        </div>
+        </div>
+    </div>
+</div>

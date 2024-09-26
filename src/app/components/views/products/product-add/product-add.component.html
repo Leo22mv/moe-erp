@@ -24,10 +24,18 @@
         <label for="floatingStockLimit">*Límite de alerta de stock</label>
     </div>
     <div class="form-floating">
-        <input name="floatingBarcode" [(ngModel)]="form.barcode" type="text" class="form-control" id="floatingBarcode" placeholder="Código de barras">
+        <input (keydown.enter)="searchOnApi()" name="floatingBarcode" [(ngModel)]="form.barcode" type="text" class="form-control" id="floatingBarcode" placeholder="Código de barras">
         <label for="floatingBarcode">Código de barras</label>
     </div>
 </form>
+
+<div class="alert alert-secondary" role="alert" *ngIf="searchingOnApi">
+    Buscando producto en api...
+</div>
+
+<div class="alert alert-danger" role="alert" *ngIf="notFoundOnApi">
+    Producto no encontrado en api o conexión no disponible
+</div>
 
 <div class="alert alert-success" role="alert" *ngIf="added">
     Producto agregado correctamente

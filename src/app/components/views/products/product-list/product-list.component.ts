@@ -77,6 +77,9 @@ export class ProductListComponent {
     if (this.products.length < 1) {
       this.empty = true;
     }
+    if (this.filteredProducts.length < 1 && this.products.length >= 1) {
+      this.withoutResults = true;
+    }
   }
 
   updateFormWithProduct(id: number, name: string, price: number, sellPrice: number, stock: number, barcode: string, brand: string, stock_limit: number) {

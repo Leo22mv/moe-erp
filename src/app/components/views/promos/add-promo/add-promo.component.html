@@ -1,0 +1,68 @@
+<form id="addPromoForm" #addPromoForm>
+    <div class="form-floating">
+        <input name="floatingName" [(ngModel)]="form.name" type="text" class="form-control" id="floatingName" placeholder="Nombre" required>
+        <label for="floatingInput">*Nombre</label>
+    </div>
+    <div class="form-floating">
+        <input name="floatingPrice" [(ngModel)]="form.price" type="number" class="form-control" id="floatingPrice" placeholder="Precio" required>
+        <label for="floatingPrice">*Precio</label>
+    </div>
+
+    <button type="button" class="btn btn-dark" (click)="addProduct()">Agregar producto</button>
+
+    <ul class="list-group">
+        <!-- @for(product of form.products; track $index) {
+            <li class="list-group-item">
+                <div *ngIf="!product.id" class="form-floating">
+                    <input (keydown)="onEnter($event, product, $index)" list="datalistOptions" (input)="updateDatalist(product.name)" name="floatingSearchProduct" [(ngModel)]="product.name" type="text" class="form-control" id="floatingSearchProduct" placeholder="Buscar por nombre...">
+                    <label for="floatingSearchProduct">Buscar por nombre...</label>
+                    <datalist id="datalistOptions">
+                        <option value="Cargando..." *ngIf="isLoadingDatalist">
+                        <option *ngFor="let option of datalist" value="{{ option.name }}">
+                    </datalist>
+                </div>
+                <div *ngIf="product.id">
+                    <div class="form-floating">
+                        <input name="floatingProductName" [(ngModel)]="product.name" type="text" class="form-control" id="floatingProductName" placeholder="Nombre" disabled>
+                        <label for="floatingProductName">Nombre</label>
+                    </div>
+                    <div class="form-floating">
+                        <input name="floatingProductQty" [(ngModel)]="product.quantity" type="number" class="form-control" id="floatingProductQty" placeholder="Cantidad" min="1">
+                        <label for="floatingProductQty">Cantidad</label>
+                    </div>
+                </div>
+            </li>
+        } -->
+        <!-- <li class="list-group-item" *ngFor="let product of form.products; let i = index"> -->
+        <li class="list-group-item" *ngFor="let product of form.products; let i = index; trackBy: trackByFn">
+            <div *ngIf="!product.id" class="form-floating">
+                <input (keydown)="onEnter($event, product, i)" list="datalistOptions" (input)="updateDatalist(product.name)" name="floatingSearchProduct{{i}}" [(ngModel)]="form.products[i].name" type="text" class="form-control" id="floatingSearchProduct" placeholder="Buscar por nombre...">
+                <label for="floatingSearchProduct">Buscar por nombre...</label>
+                <datalist id="datalistOptions">
+                    <option value="Cargando..." *ngIf="isLoadingDatalist">
+                    <option *ngFor="let option of datalist" value="{{ option.name }}">
+                </datalist>
+            </div>
+            <div *ngIf="product.id">
+                <div class="form-floating">
+                    <input name="floatingProductName{{i}}" [(ngModel)]="product.name" type="text" class="form-control" id="floatingProductName" placeholder="Nombre" disabled>
+                    <label for="floatingProductName">Nombre</label>
+                </div>
+                <div class="form-floating">
+                    <input name="floatingProductQty{{i}}" [(ngModel)]="product.quantity" type="number" class="form-control" id="floatingProductQty" placeholder="Cantidad" min="1">
+                    <label for="floatingProductQty">Cantidad</label>
+                </div>
+            </div>
+        </li>
+    </ul>
+</form>
+
+<div class="alert alert-success" role="alert" *ngIf="added">
+    Promo agregada correctamente
+</div>
+
+<div class="alert alert-danger" role="alert" *ngIf="emptyFieldsError">
+    Complete todos los campos obligatorios (*) para continuar
+</div>
+
+<button class="btn btn-dark btn-lg" (click)="addPromo(form)">Agregar promo</button>

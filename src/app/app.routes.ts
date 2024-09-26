@@ -7,8 +7,15 @@ import { ProductsComponent } from './components/views/products/products.componen
 import { SalesComponent } from './components/views/sales/sales.component';
 import { BoxSalesComponent } from './components/views/box/sales/sales.component';
 import { SalesByDateComponent } from './components/views/box/sales-by-date/sales-by-date.component';
+import { PromosComponent } from './components/views/promos/promos.component';
+import { PromosListComponent } from './components/views/promos/promos-list/promos-list.component';
+import { AddPromoComponent } from './components/views/promos/add-promo/add-promo.component';
 
 export const routes: Routes = [
+    { path: "promos", component: PromosComponent, children: [
+        { path: "list", component: PromosListComponent },
+        { path: "add", component: AddPromoComponent },
+    ] },
     { path: "box", component: BoxComponent, children: [
         { path: "sales", component: BoxSalesComponent },
         { path: "sales-by-date", component: SalesByDateComponent },

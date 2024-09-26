@@ -28,3 +28,12 @@ h1, .btn-lg {
 .btn-close {
     margin-right: 10px;
 }
+.delete-product-btn {
+    margin-left: 15px;
+}
+.add-by-barcode-or-name {
+    width: 70%;
+}
+.add-amount {
+    width: 28%;
+}

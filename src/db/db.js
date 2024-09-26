@@ -109,9 +109,108 @@ function createSaleProductsTable() {
     });
 }
 
+// function insertSale(sale, callback) {
+//     const date = new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' });
+//     const insertSaleQuery = `INSERT INTO sales (date, total) VALUES (?, ?)`;
+
+//     db.run(insertSaleQuery, [date, sale.total], function (err) {
+//         if (err) {
+//             console.error('Error al insertar venta:', err.message);
+//             callback(err);
+//             return;
+//         }
+
+//         const saleId = this.lastID;
+
+//         const insertSaleProductsQuery = `INSERT INTO sale_products (sale_id, product_id, quantity) VALUES (?, ?, ?)`;
+
+//         db.serialize(() => {
+//             db.run('BEGIN TRANSACTION');
+
+//             sale.products.forEach(product => {
+//                 const checkPromoQuery = `SELECT * FROM promos WHERE name = ?`;
+
+//                 db.get(checkPromoQuery, [product.name], (err, promoRow) => {
+//                     if (err) {
+//                         console.error('Error al buscar promoción:', err.message);
+//                         db.run('ROLLBACK');
+//                         callback(err);
+//                         return;
+//                     }
+
+//                     if (promoRow) {
+//                         const getPromoProductsQuery = `SELECT * FROM promo_products WHERE promo_id = ?`;
+//                         db.all(getPromoProductsQuery, [promoRow.id], (err, promoProducts) => {
+//                             if (err) {
+//                                 console.error('Error al obtener productos de la promoción:', err.message);
+//                                 db.run('ROLLBACK');
+//                                 callback(err);
+//                                 return;
+//                             }
+
+//                             promoProducts.forEach(promoProduct => {
+//                                 const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
+//                                 const promoQuantity = promoProduct.quantity * product.quantity;
+                                
+//                                 db.run(insertSaleProductsQuery, [saleId, promoProduct.product_id, promoQuantity], (err) => {
+//                                     if (err) {
+//                                         console.error('Error al insertar producto promocional en la venta:', err.message);
+//                                         db.run('ROLLBACK');
+//                                         callback(err);
+//                                         return;
+//                                     }
+
+//                                     db.run(updateStockQuery, [promoQuantity, promoProduct.product_id], (err) => {
+//                                         if (err) {
+//                                             console.error('Error al actualizar stock de la promo:', err.message);
+//                                             db.run('ROLLBACK');
+//                                             callback(err);
+//                                             return;
+//                                         }
+//                                     });
+//                                 });
+//                             });
+//                         });
+//                     } else {
+//                         db.run(insertSaleProductsQuery, [saleId, product.id, product.quantity], (err) => {
+//                             if (err) {
+//                                 console.error('Error al insertar producto en la venta:', err.message);
+//                                 db.run('ROLLBACK');
+//                                 callback(err);
+//                                 return;
+//                             }
+
+//                             const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
+//                             db.run(updateStockQuery, [product.quantity, product.id], (err) => {
+//                                 if (err) {
+//                                     console.error('Error al actualizar stock:', err.message);
+//                                     db.run('ROLLBACK');
+//                                     callback(err);
+//                                     return;
+//                                 }
+//                             });
+//                         });
+//                     }
+//                 });
+//             });
+
+//             db.run('COMMIT', (err) => {
+//                 if (err) {
+//                     console.error('Error al confirmar transacción:', err.message);
+//                     callback(err);
+//                 } else {
+//                     console.log(`Venta ${saleId} registrada con éxito`);
+//                     callback(null);
+//                 }
+//             });
+//         });
+//     });
+// }
+
 function insertSale(sale, callback) {
-    const date = new Date().toISOString();
+    const date = moment().tz('America/Argentina/Buenos_Aires').format('YYYY-MM-DD HH:mm:ss');
     const insertSaleQuery = `INSERT INTO sales (date, total) VALUES (?, ?)`;
+    
     db.run(insertSaleQuery, [date, sale.total], function(err) {
         if (err) {
             console.error('Error al insertar venta:', err.message);
@@ -122,35 +221,70 @@ function insertSale(sale, callback) {
         const saleId = this.lastID;
 
         const insertSaleProductsQuery = `INSERT INTO sale_products (sale_id, product_id, quantity) VALUES (?, ?, ?)`;
+        const insertSalePromosQuery = `INSERT INTO sale_promos (sale_id, promo_id, quantity) VALUES (?, ?, ?)`;
+        const insertSaleAmountsQuery = `INSERT INTO sale_amounts (sale_id, amount, description) VALUES (?, ?, ?)`;
 
-        // Preparar las transacciones para actualizar el stock
         db.serialize(() => {
             db.run('BEGIN TRANSACTION');
 
             sale.products.forEach(product => {
-                // Insertar en sale_products
-                db.run(insertSaleProductsQuery, [saleId, product.id, product.quantity], (err) => {
-                    if (err) {
-                        console.error('Error al insertar producto en la venta:', err.message);
-                        db.run('ROLLBACK');
-                        callback(err);
-                        return;
-                    }
-
-                    // Actualizar stock
-                    const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
-                    db.run(updateStockQuery, [product.quantity, product.id], (err) => {
+                if (product.isPromo) {
+                    db.run(insertSalePromosQuery, [saleId, product.promoId, product.quantity], (err) => {
                         if (err) {
-                            console.error('Error al actualizar stock:', err.message);
+                            console.error('Error al insertar promo en la venta:', err.message);
+                            db.run('ROLLBACK');
+                            callback(err);
+                            return;
+                        }
+
+                        product.productsInPromo.forEach(promoProduct => {
+                            const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
+                            db.run(updateStockQuery, [promoProduct.quantity, promoProduct.id], (err) => {
+                                if (err) {
+                                    console.error('Error al actualizar stock de producto en la promo:', err.message);
+                                    db.run('ROLLBACK');
+                                    callback(err);
+                                    return;
+                                }
+                            });
+                        });
+                    });
+                } else {
+                    db.run(insertSaleProductsQuery, [saleId, product.id, product.quantity], (err) => {
+                        if (err) {
+                            console.error('Error al insertar producto en la venta:', err.message);
+                            db.run('ROLLBACK');
+                            callback(err);
+                            return;
+                        }
+
+                        const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
+                        db.run(updateStockQuery, [product.quantity, product.id], (err) => {
+                            if (err) {
+                                console.error('Error al actualizar stock de producto:', err.message);
+                                db.run('ROLLBACK');
+                                callback(err);
+                                return;
+                            }
+                        });
+                    });
+                }
+            });
+
+            if (sale.amounts && sale.amounts.length > 0) {
+                // console.log(JSON.stringify(sale.amounts, null, 2));
+                sale.amounts.forEach(amount => {
+                    db.run(insertSaleAmountsQuery, [saleId, amount.amount, amount.description || null], (err) => {
+                        if (err) {
+                            console.error('Error al insertar monto suelto:', err.message);
                             db.run('ROLLBACK');
                             callback(err);
                             return;
                         }
                     });
                 });
-            });
+            }
 
-            // Finalizar la transacción
             db.run('COMMIT', (err) => {
                 if (err) {
                     console.error('Error al confirmar transacción:', err.message);
@@ -163,6 +297,7 @@ function insertSale(sale, callback) {
         });
     });
 }
+
 
 function getProductByBarcode(barcode, callback) {
     const query = `SELECT * FROM products WHERE barcode = ?`;
@@ -242,23 +377,165 @@ function getAllSales(callback) {
 
 const moment = require('moment-timezone');
 
-function getSalesByDate(dateGMT3, callback) {
-    const startOfDayGMT = moment.tz(dateGMT3, 'YYYY-MM-DD', 'America/Argentina/Buenos_Aires')
-                                .startOf('day')
-                                .utc()
-                                .format('YYYY-MM-DD HH:mm:ss');
-    const endOfDayGMT = moment.tz(dateGMT3, 'YYYY-MM-DD', 'America/Argentina/Buenos_Aires')
-                              .endOf('day')
-                              .utc()
-                              .format('YYYY-MM-DD HH:mm:ss');
+// function getSalesByDate(dateGMT3, callback) {
+//     const formattedDate = moment.tz(dateGMT3, 'America/Argentina/Buenos_Aires')
+//                                 .format('M/D/YYYY');
 
-    const query = `SELECT * FROM sales WHERE date BETWEEN ? AND ?`;
-    db.all(query, [startOfDayGMT, endOfDayGMT], (err, rows) => {
+//     const query = `
+//         SELECT 
+//             sales.id AS sale_id, 
+//             sales.date AS sale_date, 
+//             sales.total AS sale_total,
+//             products.id AS product_id,
+//             products.name AS product_name,
+//             products.sellPrice AS product_price,
+//             sale_products.quantity AS product_quantity
+//         FROM 
+//             sales
+//         INNER JOIN 
+//             sale_products ON sales.id = sale_products.sale_id
+//         INNER JOIN 
+//             products ON sale_products.product_id = products.id
+//         WHERE 
+//             sales.date LIKE ?
+//         ORDER BY 
+//             sales.id, products.id
+//     `;
+
+//     db.all(query, [`${formattedDate}%`], (err, rows) => {
+//         if (err) {
+//             console.error('Error al obtener ventas con detalles por fecha:', err.message);
+//             callback(err, null);
+//         } else {
+//             const sales = {};
+
+//             rows.forEach(row => {
+//                 if (!sales[row.sale_id]) {
+//                     sales[row.sale_id] = {
+//                         id: row.sale_id,
+//                         date: row.sale_date,
+//                         total: row.sale_total,
+//                         products: []
+//                     };
+//                 }
+
+//                 sales[row.sale_id].products.push({
+//                     id: row.product_id,
+//                     name: row.product_name,
+//                     price: row.product_price,
+//                     quantity: row.product_quantity
+//                 });
+//             });
+
+//             const salesArray = Object.values(sales);
+//             callback(null, salesArray);
+//             console.log(salesArray);
+//         }
+//     });
+// }
+
+function getSalesByDate(dateGMT3, callback) {
+    const startOfDay = moment.tz(dateGMT3, 'America/Argentina/Buenos_Aires')
+                             .startOf('day')
+                             .format('YYYY-MM-DD HH:mm:ss');
+
+    const endOfDay = moment.tz(dateGMT3, 'America/Argentina/Buenos_Aires')
+                           .endOf('day')
+                           .format('YYYY-MM-DD HH:mm:ss');
+
+    const query = `
+        SELECT 
+            sales.id AS sale_id, 
+            sales.date AS sale_date, 
+            sales.total AS sale_total,
+
+            products.id AS product_id,
+            products.name AS product_name,
+            products.sellPrice AS product_price,
+            sale_products.quantity AS product_quantity,
+
+            promos.id AS promo_id,
+            promos.name AS promo_name,
+            promos.price AS promo_price,
+            sale_promos.quantity AS promo_quantity,
+
+            sale_amounts.amount AS extra_amount,
+            sale_amounts.description AS extra_description
+
+        FROM 
+            sales
+        LEFT JOIN 
+            sale_products ON sales.id = sale_products.sale_id
+        LEFT JOIN 
+            products ON sale_products.product_id = products.id
+
+        LEFT JOIN 
+            sale_promos ON sales.id = sale_promos.sale_id
+        LEFT JOIN 
+            promos ON sale_promos.promo_id = promos.id
+
+        LEFT JOIN 
+            sale_amounts ON sales.id = sale_amounts.sale_id
+
+        WHERE 
+            sales.date BETWEEN ? AND ?
+        ORDER BY 
+            sales.id, products.id, promos.id
+    `;
+    console.log(startOfDay + ", " + endOfDay);
+
+    db.all(query, [startOfDay, endOfDay], (err, rows) => {
         if (err) {
-            console.error('Error al obtener las ventas:', err.message);
+            console.error('Error al obtener ventas con detalles por fecha:', err.message);
             callback(err, null);
         } else {
-            callback(null, rows);
+            const sales = {};
+
+            rows.forEach(row => {
+                // Si no existe la venta, agregarla
+                if (!sales[row.sale_id]) {
+                    sales[row.sale_id] = {
+                        id: row.sale_id,
+                        date: row.sale_date,
+                        total: row.sale_total,
+                        products: [],
+                        promos: [],
+                        amounts: []
+                    };
+                }
+
+                // Si hay un producto, agregarlo
+                if (row.product_id) {
+                    sales[row.sale_id].products.push({
+                        id: row.product_id,
+                        name: row.product_name,
+                        price: row.product_price,
+                        quantity: row.product_quantity
+                    });
+                }
+
+                // Si hay una promo, agregarla
+                if (row.promo_id) {
+                    sales[row.sale_id].promos.push({
+                        id: row.promo_id,
+                        name: row.promo_name,
+                        price: row.promo_price,
+                        quantity: row.promo_quantity
+                    });
+                }
+
+                // Si hay un monto adicional, agregarlo
+                if (row.extra_amount !== null) {
+                    sales[row.sale_id].amounts.push({
+                        amount: row.extra_amount,
+                        description: row.extra_description
+                    });
+                }
+            });
+
+            const salesArray = Object.values(sales);
+            callback(null, salesArray);
+            console.log(salesArray);
         }
     });
 }
@@ -280,6 +557,182 @@ function searchProducts(query, callback) {
     });
 }
 
+function createPromosTable() {
+    db.run(`CREATE TABLE IF NOT EXISTS promos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        price REAL NOT NULL
+    )`, (err) => {
+        if (err) {
+            console.error('Error al crear la tabla promos:', err.message);
+        } else {
+            console.log('Tabla de promociones creada o existente');
+        }
+    });
+}
+
+function createPromoProductsTable() {
+    db.run(`CREATE TABLE IF NOT EXISTS promo_products (
+        promo_id INTEGER,
+        product_id INTEGER,
+        quantity INTEGER NOT NULL DEFAULT 1,
+        FOREIGN KEY (promo_id) REFERENCES promos(id),
+        FOREIGN KEY (product_id) REFERENCES products(id)
+    )`, (err) => {
+        if (err) {
+            console.error('Error al crear la tabla promo_products:', err.message);
+        } else {
+            console.log('Tabla de productos en promociones creada o existente');
+        }
+    });
+}
+
+function addPromo(promo, callback) {
+    const promoQuery = `INSERT INTO promos (name, price) VALUES (?, ?)`;
+
+    db.run(promoQuery, [promo.name, promo.price], function(err) {
+        if (err) {
+            console.error('Error al agregar la promoción:', err.message);
+            callback(err);
+        } else {
+            const promoId = this.lastID;
+
+            const productQuery = `INSERT INTO promo_products (promo_id, product_id, quantity) VALUES (?, ?, ?)`;
+            promo.products.forEach((product) => {
+                db.run(productQuery, [promoId, product.id, product.quantity], (err) => {
+                    if (err) {
+                        console.error('Error al agregar producto a la promoción:', err.message);
+                    }
+                });
+            });
+
+            callback(null, promoId);
+        }
+    });
+}
+
+function getPromosWithProducts(callback) {
+    const query = `
+        SELECT p.id AS promo_id, p.name AS promo_name, p.price AS promo_price, 
+               prod.id AS product_id, prod.name AS product_name, pp.quantity AS quantity
+        FROM promos p
+        LEFT JOIN promo_products pp ON p.id = pp.promo_id
+        LEFT JOIN products prod ON pp.product_id = prod.id`;
+
+    db.all(query, [], (err, rows) => {
+        if (err) {
+            console.error('Error al obtener las promociones:', err.message);
+            callback(err, null);
+        } else {
+            // Agrupar las promociones por sus productos y cantidades
+            const promos = {};
+            rows.forEach(row => {
+                if (!promos[row.promo_id]) {
+                    promos[row.promo_id] = {
+                        id: row.promo_id,
+                        name: row.promo_name,
+                        price: row.promo_price,
+                        products: []
+                    };
+                }
+
+                // Si existe un producto asociado, lo agregamos a la lista
+                if (row.product_id) {
+                    promos[row.promo_id].products.push({
+                        id: row.product_id,
+                        name: row.product_name,
+                        quantity: row.quantity
+                    });
+                }
+            });
+
+            callback(null, Object.values(promos));
+        }
+    });
+}
+
+function searchPromos(query, callback) {
+    const searchQuery = `
+        SELECT * FROM promos 
+        WHERE LOWER(name) LIKE ?
+    `;
+    const lowerQuery = query.toLowerCase();
+    const searchParam = `%${lowerQuery}%`;
+    db.all(searchQuery, [searchParam], (err, rows) => {
+        if (err) {
+            console.error('Error al buscar promos:', err.message);
+            callback(err, null);
+        } else {
+            callback(null, rows);
+        }
+    });
+}
+
+function deletePromo(promoId, callback) {
+    const deleteProductsQuery = `DELETE FROM promo_products WHERE promo_id = ?`;
+
+    db.run(deleteProductsQuery, [promoId], function(err) {
+        if (err) {
+            console.error('Error al eliminar productos de la promoción:', err.message);
+            callback(err);
+        } else {
+            const deletePromoQuery = `DELETE FROM promos WHERE id = ?`;
+
+            db.run(deletePromoQuery, [promoId], function(err) {
+                if (err) {
+                    console.error('Error al eliminar la promoción:', err.message);
+                    callback(err);
+                } else {
+                    console.log(`Promoción con ID: ${promoId} eliminada`);
+                    callback(null);
+                }
+            });
+        }
+    });
+}
+
+function createSalePromosTable() {
+    db.run(`CREATE TABLE IF NOT EXISTS sale_promos (
+        sale_id INTEGER,
+        promo_id INTEGER,
+        quantity INTEGER,
+        FOREIGN KEY (sale_id) REFERENCES sales(id),
+        FOREIGN KEY (promo_id) REFERENCES promos(id)
+    )`, (err) => {
+        if (err) {
+            console.error('Error al crear la tabla:', err.message);
+        } else {
+            console.log('Tabla de promociones en ventas creada o existente');
+        }
+    });
+}
+
+function createSaleAmountsTable() {
+    db.run(`CREATE TABLE IF NOT EXISTS sale_amounts (
+        sale_id INTEGER,
+        amount REAL NOT NULL,
+        description TEXT,
+        FOREIGN KEY (sale_id) REFERENCES sales(id)
+    )`, (err) => {
+        if (err) {
+            console.error('Error al crear la tabla:', err.message);
+        } else {
+            console.log('Tabla de montos en ventas creada o existente');
+        }
+    });
+}
+
+function getProductsByPromo(promoId, callback) {
+    const query = `SELECT * FROM promo_products WHERE promo_id = ?`;
+    db.all(query, [promoId], (err, rows) => {
+        if (err) {
+            console.error('Error al obtener productos por por promoción:', err.message);
+            callback(err, null);
+        } else {
+            callback(null, rows);
+        }
+    });
+}
 
 module.exports = {
     createTable,
@@ -294,5 +747,14 @@ module.exports = {
     getSalesWithDetails,
     getAllSales,
     getSalesByDate,
-    searchProducts
+    searchProducts,
+    createPromosTable,
+    createPromoProductsTable,
+    addPromo,
+    getPromosWithProducts,
+    searchPromos,
+    deletePromo,
+    createSaleAmountsTable,
+    createSalePromosTable,
+    getProductsByPromo
 };

@@ -2,8 +2,24 @@
 <input type="date" id="date" name="date" [(ngModel)]="date" (change)="clearSales()">
 <button class="btn btn-dark" routerLink="sales" (click)="getSalesByDate()">Ver</button>
 <ul class="list-group">
-    <li class="list-group-item" *ngFor="let sale of sales">Venta N°: {{ sale.id }} | Hora: {{ sale.formattedTime }} | Total: ${{ sale.total }}</li>
+    <li class="list-group-item list-group-item-secondary" *ngFor="let sale of sales">
+        Venta N°: {{ sale.id }} | Hora: {{ sale.formattedTime }} | Total: ${{ sale.total }} | 
+        <!-- <a data-bs-toggle="collapse" [attr.data-target]="'#collapseExample'+ sale.id" aria-expanded="false" aria-controls="collapseExample">Detalles</a> -->
+        <a class="link-dark" data-bs-toggle="collapse" href="#collapseExample{{ sale.id }}" role="button" aria-expanded="false" aria-controls="collapseExample">
+            Detalles
+        </a>
+        <div class="collapse" id="collapseExample{{ sale.id }}">
+            <ul class="list-group">
+                <li class="list-group-item" *ngFor="let product of sale.products">Producto: {{ product.name }} | Cantidad: {{ product.quantity }} | Precio: ${{ product.price }} | Total: ${{ product.price * product.quantity }}</li>
+                <li class="list-group-item" *ngFor="let amount of sale.amounts">Producto: {{ amount.description }} | Cantidad: 1 | Precio: ${{ amount.amount }} | Total: ${{ amount.amount }}</li>
+                <li class="list-group-item" *ngFor="let promo of sale.promos">Producto: {{ promo.name }} | Cantidad: {{ promo.quantity }} | Precio: ${{ promo.price }} | Total: ${{ promo.price * promo.quantity }}</li>
+            </ul>
+        </div>
+    </li>
 </ul>
+<div class="alert alert-success" role="alert" *ngIf="!empty && sales.length >= 1">
+    Caja: <strong>${{ total }}</strong>
+</div>
 <div class="alert alert-secondary" role="alert" *ngIf="empty">
     No se encontraron ventas para el día {{ parseDate(date) }}
 </div>

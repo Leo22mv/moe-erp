@@ -25,6 +25,8 @@ export class ProductAddComponent {
 
   added: boolean = false;
   emptyFieldsError: boolean = false;
+  searchingOnApi: boolean = false;
+  notFoundOnApi: boolean = false;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
@@ -58,5 +60,45 @@ export class ProductAddComponent {
           this.cdr.detectChanges();
       });
     }
+  }
+
+  searchOnApi() {
+    const uri = "https://world.openfoodfacts.org/api/v3/product/" + this.form.barcode;
+
+    this.searchingOnApi = true;
+    this.notFoundOnApi = false;
+    this.cdr.detectChanges();
+
+    fetch(uri).then(res => {
+      if (res.status === 200) {
+        return res.json();
+      } else {
+        this.searchingOnApi = false;
+        this.notFoundOnApi = true;
+        this.cdr.detectChanges();
+        return null;
+      }
+    }).then(res => {
+      if (!this.notFoundOnApi) {
+        console.log("res");
+        console.log(res.product);
+
+        this.form.name = res.product.product_name + ", ";
+        this.form.brand = res.product.brands;
+
+        for (let keyword of res.product._keywords) {
+          this.form.name += keyword + " ";
+        }
+
+        this.searchingOnApi = false;
+        this.cdr.detectChanges();
+      }
+    }, err => {
+      console.log("err");
+      console.error(err);
+      this.searchingOnApi = false;
+      this.notFoundOnApi = true;
+      this.cdr.detectChanges();
+    })
   }
 }

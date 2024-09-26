@@ -10,3 +10,6 @@ input, label {
 ul {
     margin: 10px;
 }
+.alert-success {
+    margin-bottom: 15px;
+}
