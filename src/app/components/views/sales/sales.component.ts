@@ -96,7 +96,7 @@ export class SalesComponent implements OnInit {
       if (saleInputs.length > 0) {
         saleInputs[saleInputs.length - 1].nativeElement.focus();
       }
-    }, 50);
+    }, 100);
     this.updateLocalStorage();
   }
 
@@ -251,6 +251,7 @@ export class SalesComponent implements OnInit {
             }
           } else {
             console.error('Error al obtener promos:', response.error);
+            this.addProductToSale(sale, index);
           }
         });
       }
@@ -277,10 +278,11 @@ export class SalesComponent implements OnInit {
   }
   
   insertSale(sale: any) {
+    if (!sale.products[sale.products.length - 1].name) {
+      sale.products.pop();
+    }
+
     if (sale.products.length > 0) {
-      if (!sale.products[sale.products.length - 1].name) {
-        sale.products.pop();
-      }
 
       sale.products = sale.products.filter((product: any) => product.id !== 99999);
 
@@ -339,7 +341,7 @@ export class SalesComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  insertAmount(sale: any, item: any) {
+  insertAmount(sale: any, item: any, index: number) {
     sale.amounts.push({
       amount: this.amount,
       description: item.barcode
@@ -354,11 +356,13 @@ export class SalesComponent implements OnInit {
 
     this.amount = null;
 
-    const index = sale.products.indexOf(item);
-    sale.products[index] = updatedProduct;
+    const indexOf = sale.products.indexOf(item);
+    sale.products[indexOf] = updatedProduct;
 
     sale.total = sale.products.reduce((acc: any, product: any) => {
       return acc + (product.price || 0) * (product.quantity || 1);
     }, 0);
+
+    this.addProductToSale(sale, index);
   }
 }

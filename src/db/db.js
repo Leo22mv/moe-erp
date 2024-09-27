@@ -482,7 +482,7 @@ function getSalesByDate(dateGMT3, callback) {
         ORDER BY 
             sales.id, products.id, promos.id
     `;
-    console.log(startOfDay + ", " + endOfDay);
+    // console.log(startOfDay + ", " + endOfDay);
 
     db.all(query, [startOfDay, endOfDay], (err, rows) => {
         if (err) {
@@ -535,7 +535,7 @@ function getSalesByDate(dateGMT3, callback) {
 
             const salesArray = Object.values(sales);
             callback(null, salesArray);
-            console.log(salesArray);
+            // console.log(salesArray);
         }
     });
 }

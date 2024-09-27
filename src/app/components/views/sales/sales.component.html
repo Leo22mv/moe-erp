@@ -26,7 +26,7 @@
                             <div class="form-floating add-amount">
                                 <div class="input-group">
                                     <div class="input-group-text">$</div>
-                                    <input [(ngModel)]="amount" (keydown.enter)="insertAmount(sale, product)" #floatingAmount name="floatingAmount" type="number" class="form-control" id="floatingAmount" placeholder="Monto">
+                                    <input [(ngModel)]="amount" (keydown.enter)="insertAmount(sale, product, productIndex)" #floatingAmount name="floatingAmount" type="number" class="form-control" id="floatingAmount" placeholder="Monto">
                                 </div>
                                 <label class="visually-hidden" for="floatingAmount">Monto</label>
                             </div>

@@ -39,9 +39,62 @@ export class SalesByDateComponent {
             sale.formattedDate = formattedDate;
             sale.formattedTime = formattedTime;
             this.total += sale.total;
+
+            let uniqueArray: any[] = [];
+            
+            sale.products.forEach((item: any) => {
+              // console.log("product");
+              let existent = false;
+
+              uniqueArray.forEach((uniqueItem: any) => {
+                // console.log("unique product")
+                if (JSON.stringify(item) == JSON.stringify(uniqueItem)) {
+                  existent = true;
+                  // console.log("Item existente: " + item.name);
+                }
+              });
+              
+              if (!existent) {
+                uniqueArray.push(item);
+                // console.log("Item agregado: " + item.name);
+              }
+            });
+            sale.products = uniqueArray;
+            uniqueArray = [];
+
+            sale.promos.forEach((item: any) => {
+              let existent = false;
+
+              uniqueArray.forEach((uniqueItem: any) => {
+                if (JSON.stringify(item) == JSON.stringify(uniqueItem)) {
+                  existent = true;
+                }
+              });
+              
+              if (!existent) {
+                uniqueArray.push(item);
+              }
+            });
+            sale.promos = uniqueArray;
+            uniqueArray = [];
+
+            sale.amounts.forEach((item: any) => {
+              let existent = false;
+
+              uniqueArray.forEach((uniqueItem: any) => {
+                if (JSON.stringify(item) == JSON.stringify(uniqueItem)) {
+                  existent = true;
+                }
+              });
+              
+              if (!existent) {
+                uniqueArray.push(item);
+              }
+            });
+            sale.amounts = uniqueArray;
+            uniqueArray = [];
           }
         }
-        console.log(JSON.stringify(response.data, null, 2));
         this.cdr.detectChanges();
       } else {
         console.error('Error al obtener productos:', response.error);
