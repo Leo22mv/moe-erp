@@ -41,7 +41,7 @@ export class ProductAddComponent {
   addProduct(): void {
     this.emptyFieldsError = false;
     this.added = false;
-    if (this.form.name.length < 1 || !this.form.price || !this.form.stock || !this.form.sellPrice || !this.form.stock_limit) {
+    if (this.form.name.length < 1 || !this.form.stock || !this.form.sellPrice || !this.form.stock_limit) {
       this.emptyFieldsError = true;
     } else {
       window.electron.send('insert-product', { 
@@ -57,6 +57,13 @@ export class ProductAddComponent {
       window.electron.receive('product-inserted', (response: any) => {
           console.log(response);
           this.added = true;
+          this.form.name = "",
+          this.form.price = null,
+          this.form.sellPrice = null,
+          this.form.stock = null,
+          this.form.barcode = null,
+          this.form.brand = null,
+          this.form.stock_limit = null
           this.cdr.detectChanges();
       });
     }
