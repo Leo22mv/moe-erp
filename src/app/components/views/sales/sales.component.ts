@@ -341,7 +341,7 @@ export class SalesComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  insertAmount(sale: any, item: any, index: number) {
+  insertAmount(sale: any, item: any, index: number, saleIndex: number) {
     sale.amounts.push({
       amount: this.amount,
       description: item.barcode
@@ -364,5 +364,17 @@ export class SalesComponent implements OnInit {
     }, 0);
 
     this.addProductToSale(sale, index);
+
+    setTimeout(() => {
+      const saleInputs = this.floatingProductInputs.toArray().filter((input, index) => {
+        const saleElement = input.nativeElement.closest('.col-6');
+        return saleElement && saleElement.getAttribute('data-sale-index') == saleIndex;
+      });
+  
+      if (saleInputs.length > 0) {
+        saleInputs[saleInputs.length - 1].nativeElement.focus();
+      }
+    }, 100);
+    this.updateLocalStorage();
   }
 }
