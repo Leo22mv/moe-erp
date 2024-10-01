@@ -96,7 +96,7 @@ export class SalesComponent implements OnInit {
       if (saleInputs.length > 0) {
         saleInputs[saleInputs.length - 1].nativeElement.focus();
       }
-    }, 100);
+    }, 50);
     this.updateLocalStorage();
   }
 
@@ -242,6 +242,7 @@ export class SalesComponent implements OnInit {
                   }, 0);
 
                   this.addProductToSale(sale, index);
+                  this.focusLastItem(index);
                   this.cdr.detectChanges();
                   this.updateLocalStorage();
                 } else {
@@ -364,7 +365,10 @@ export class SalesComponent implements OnInit {
     }, 0);
 
     this.addProductToSale(sale, index);
+    this.focusLastItem(saleIndex);
+  }
 
+  focusLastItem(saleIndex: number) {
     setTimeout(() => {
       const saleInputs = this.floatingProductInputs.toArray().filter((input, index) => {
         const saleElement = input.nativeElement.closest('.col-6');
