@@ -202,3 +202,34 @@ ipcMain.on('get-products-by-promo', (event, promoId) => {
     }
   });
 });
+
+ipcMain.on('search-products-for-express-promo', (event, query) => {
+  searchProducts(query, (err, results) => {
+    if (err) {
+      event.reply('search-products-for-express-promo-response', { success: false, error: 'Error al obtener búsqueda de productos para promo expresssssss: ' + err.message });
+    } else {
+      event.reply('search-products-for-express-promo-response', { success: true, data: results });
+    }
+  });
+});
+
+ipcMain.on('get-product-by-barcode-for-express-promo', (event, productBarcode) => {
+  getProductByBarcode(productBarcode, (err, product) => {
+    if (err) {
+        console.error('Error retrieving products for express promo:', err.message);
+        event.reply('get-product-by-barcode-for-express-promo-response', { success: false, error: err.message });
+    } else {
+        event.reply('get-product-by-barcode-for-express-promo-response', { success: true, data: product });
+    }
+  });
+});
+
+ipcMain.on('search-products-for-express-promo', (event, query) => {
+  searchProducts(query, (err, results) => {
+    if (err) {
+      event.reply('search-products-for-express-promo-response', { success: false, error: 'Error al obtener búsqueda de productos para promo express: ' + err.message });
+    } else {
+      event.reply('search-products-for-express-promo-response', { success: true, data: results });
+    }
+  });
+});
