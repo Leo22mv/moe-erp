@@ -20,6 +20,8 @@ export class SalesComponent implements OnInit {
   datalist: any[] = [];
   isLoadingDatalist: boolean = true;
   amount: number | null = null;
+  expressPromoDatalist: any[] = [];
+  isLoadingExpressPromoDatalist: boolean = true;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
@@ -58,13 +60,28 @@ export class SalesComponent implements OnInit {
           console.error('Error al buscar promos:', response.error);
       }
     });
+
+    window.electron.receive('search-products-for-express-promo-response', (response: any) => {
+      if (response.success) {
+          if (this.expressPromoDatalist.length < 1) {
+            this.expressPromoDatalist = response.data;
+          } else {
+            this.expressPromoDatalist = [...this.expressPromoDatalist, ...response.data];
+            this.isLoadingExpressPromoDatalist = false;
+          }
+          this.cdr.detectChanges();
+      } else {
+          console.error('Error al buscar productos para promo express:', response.error);
+      }
+    });
   }
 
   addSale() {
     this.sales.push({
       "products": [],
       "total": 0,
-      "amounts": []
+      "amounts": [],
+      "expressPromos": []
     })
     this.updateLocalStorage();
   }
@@ -380,5 +397,106 @@ export class SalesComponent implements OnInit {
       }
     }, 100);
     this.updateLocalStorage();
+  }
+
+  addExpressPromoToSale(sale: any, i: number) {
+    const newExpressPromo = {
+      products: [],
+      price: null
+    };
+    sale.expressPromos.push({ ...newExpressPromo });
+    this.updateLocalStorage();
+    this.cdr.detectChanges();
+  }
+
+  addProductToExpressPromo(expressPromo: any) {
+    const newExpressPromoProduct = {
+      id: null,
+      name: null,
+      price: null,
+      quantity: 1,
+      barcode: null
+    };
+    expressPromo.products.push({ ...newExpressPromoProduct });
+    this.updateLocalStorage();
+    this.cdr.detectChanges();
+  }
+
+  updateExpressPromoDatalist(query: string): void {
+    this.expressPromoDatalist = [];
+    this.isLoadingExpressPromoDatalist = true;
+    if (query.length >= 1) {
+      window.electron.send('search-products-for-express-promo', query);
+    }
+  }
+
+  onExpressPromoProductEnter(item: any, sale: any, index: number) {
+    if (this.isNumeric(item.barcode)) {
+      window.electron.send('get-product-by-barcode-for-express-promo', item.barcode);
+
+      window.electron.receive('get-product-by-barcode-for-express-promo-response', (response: any) => {
+        if (response.success) {
+          const updatedProduct = {
+            ...item,
+            name: response.data.name,
+            price: response.data.sellPrice,
+            id: response.data.id,
+          };
+
+          let existentOnSale: boolean = false;
+  
+          for (let product of sale.products) {
+            if (product.name == updatedProduct.name) {
+              item.barcode = "";
+              existentOnSale = true;
+              break
+            }
+          }
+
+          if (!existentOnSale)  {
+            const index = sale.products.indexOf(item);
+            sale.products[index] = updatedProduct;
+          }
+
+          this.cdr.detectChanges();
+        } else {
+          console.error('Error al obtener productos para promo express:', response.error);
+        }
+        this.updateLocalStorage();
+      });
+    } else {
+      window.electron.send('search-products-for-express-promo', item.barcode);
+
+      window.electron.receive('search-products-for-express-promo-response', (response: any) => {
+        if (response.success && response.data[0].name == item.barcode) {
+          const updatedProduct = {
+            ...item,
+            name: response.data[0].name,
+            price: response.data[0].sellPrice,
+            id: response.data[0].id,
+          };
+
+          let existentOnSale: boolean = false;
+  
+          for (let product of sale.products) {
+            if (product.name == updatedProduct.name) {
+              item.barcode = "";
+              existentOnSale = true;
+              break
+            }
+          }
+
+          if (!existentOnSale)  {
+            const index = sale.products.indexOf(item);
+            sale.products[index] = updatedProduct;
+          }
+
+          this.cdr.detectChanges();
+        } else {
+          console.error('Error al obtener productos:', response.error);
+        }
+        this.updateLocalStorage();
+      });
+    }
   }
 }
