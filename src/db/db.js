@@ -223,6 +223,7 @@ function insertSale(sale, callback) {
         const insertSaleProductsQuery = `INSERT INTO sale_products (sale_id, product_id, quantity) VALUES (?, ?, ?)`;
         const insertSalePromosQuery = `INSERT INTO sale_promos (sale_id, promo_id, quantity) VALUES (?, ?, ?)`;
         const insertSaleAmountsQuery = `INSERT INTO sale_amounts (sale_id, amount, description) VALUES (?, ?, ?)`;
+        const insertExpressPromosQuery = `INSERT INTO express_promos (sale_id, total) VALUES (?, ?)`;
 
         db.serialize(() => {
             db.run('BEGIN TRANSACTION');
@@ -266,6 +267,18 @@ function insertSale(sale, callback) {
                                 callback(err);
                                 return;
                             }
+
+                            expressPromo.products.forEach(promoProduct => {
+                                const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
+                                db.run(updateStockQuery, [promoProduct.quantity, promoProduct.id], (err) => {
+                                    if (err) {
+                                        console.error('Error al actualizar stock de producto en la promo express:', err.message);
+                                        db.run('ROLLBACK');
+                                        callback(err);
+                                        return;
+                                    }
+                                });
+                            });
                         });
                     });
                 }
@@ -277,6 +290,19 @@ function insertSale(sale, callback) {
                     db.run(insertSaleAmountsQuery, [saleId, amount.amount, amount.description || null], (err) => {
                         if (err) {
                             console.error('Error al insertar monto suelto:', err.message);
+                            db.run('ROLLBACK');
+                            callback(err);
+                            return;
+                        }
+                    });
+                });
+            }
+
+            if (sale.expressPromos && sale.expressPromos.length > 0) {
+                sale.expressPromos.forEach(expressPromo => {
+                    db.run(insertExpressPromosQuery, [saleId, expressPromo.total], (err) => {
+                        if (err) {
+                            console.error('Error al insertar promo express en la venta:', err.message);
                             db.run('ROLLBACK');
                             callback(err);
                             return;
@@ -734,6 +760,48 @@ function getProductsByPromo(promoId, callback) {
     });
 }
 
+function createExpressPromosTable() {
+    db.run(`CREATE TABLE IF NOT EXISTS express_promos (
+        express_promo_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sale_id INTEGER,
+        total INTEGER,
+        FOREIGN KEY (sale_id) REFERENCES sales(id)
+    )`, (err) => {
+        if (err) {
+            console.error('Error al crear la tabla de promociones express en ventas:', err.message);
+        } else {
+            console.log('Tabla de promociones express en ventas creada o existente');
+        }
+    });
+}
+
+function insertExpressPromo(saleId, total, callback) {
+    const query = `INSERT INTO express_promos (sale_id, total) VALUES (?, ?)`;
+
+    db.run(query, [saleId, total], function(err) {
+        if (err) {
+            console.error('Error al insertar promo express en venta:', err.message);
+            callback(err);
+        } else {
+            console.log(`Promo express insertada con éxito en la venta ${saleId}`);
+            callback(null, { expressPromoId: this.lastID });
+        }
+    });
+}
+
+function getExpressPromosBySaleId(saleId, callback) {
+    const query = `SELECT * FROM sale_express_promos WHERE sale_id = ?`;
+
+    db.all(query, [saleId], (err, rows) => {
+        if (err) {
+            console.error('Error al obtener las promos express para la venta:', err.message);
+            callback(err, null);
+        } else {
+            callback(null, rows);
+        }
+    });
+}
+
 module.exports = {
     createTable,
     insertProduct,
@@ -756,5 +824,8 @@ module.exports = {
     deletePromo,
     createSaleAmountsTable,
     createSalePromosTable,
-    getProductsByPromo
+    getProductsByPromo,
+    createExpressPromosTable,
+    insertExpressPromo,
+    getExpressPromosBySaleId
 };

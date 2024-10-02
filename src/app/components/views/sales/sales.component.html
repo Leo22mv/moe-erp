@@ -15,8 +15,8 @@
             </div>
             <div class="card-body">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item" *ngFor="let expressPromo of sale.expressPromos; let expressPromoIndex = index;">
-                        <button class="btn btn-dark" (click)="addProductToExpressPromo(expressPromo)">Agregar producto</button>
+                    <li class="list-group-item list-group-item-secondary" *ngFor="let expressPromo of sale.expressPromos; let expressPromoIndex = index;">
+                        <button class="btn btn-dark add-product-to-express-promo-btn" (click)="addProductToExpressPromo(expressPromo)">Agregar producto</button>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item" *ngFor="let expressPromoProduct of expressPromo.products; let expressPromoProductIndex = index;">
                                 <div class="form-floating" *ngIf="!expressPromoProduct.name">
@@ -44,10 +44,10 @@
                         </ul>
                         <div class="d-flex align-items-center">
                             <div class="form-floating expressPromoTotalInput">
-                                <input #floatingExpressPromoTotal name="floatingExpressPromoTotal" type="number" class="form-control" id="floatingExpressPromoTotal" placeholder="Total">
+                                <input [(ngModel)]="expressPromo.total" (keydown.enter)="confirmExpressPromo(expressPromo, sale)" #floatingExpressPromoTotal name="floatingExpressPromoTotal" type="number" class="form-control" id="floatingExpressPromoTotal" placeholder="Total">
                                 <label for="floatingExpressPromoTotal">Total</label>
                             </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close delete-express-promo-btn" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                     </li>
                     <li class="list-group-item" *ngFor="let product of sale.products; let productIndex = index; trackBy: trackByProduct">

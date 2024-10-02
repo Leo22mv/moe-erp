@@ -324,6 +324,7 @@ export class SalesComponent implements OnInit {
     sale.products = [];
     sale.total = 0;
     sale.amounts = [];
+    sale.expressPromos = [];
     this.updateLocalStorage();
   }
 
@@ -402,7 +403,7 @@ export class SalesComponent implements OnInit {
   addExpressPromoToSale(sale: any, i: number) {
     const newExpressPromo = {
       products: [],
-      price: null
+      total: null
     };
     sale.expressPromos.push({ ...newExpressPromo });
     this.updateLocalStorage();
@@ -498,5 +499,11 @@ export class SalesComponent implements OnInit {
         this.updateLocalStorage();
       });
     }
+  }
+
+  confirmExpressPromo(expressPromo: any, sale: any) {
+    console.log(expressPromo);
+    sale.total += expressPromo.total;
+    this.cdr.detectChanges();
   }
 }
