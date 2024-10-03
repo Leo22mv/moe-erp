@@ -1,5 +1,5 @@
 <div class="form-floating">
-    <input (change)="onSearch()" [(ngModel)]="searchQuery" name="floatingSearch" type="text" class="form-control" id="floatingSearch" placeholder="Buscar">
+    <input (input)="onSearch()" [(ngModel)]="searchQuery" name="floatingSearch" type="text" class="form-control" id="floatingSearch" placeholder="Buscar">
     <label for="floatingSearch">Buscar</label>
 </div>
 
@@ -7,15 +7,13 @@
     <span class="visually-hidden">Loading...</span>
 </div>
 
-<!-- <ul class="list-group list-group-flush" *ngIf="!loading">
-    <li class="list-group-item list-group-item-secondary" *ngFor="let product of products"> -->
-        <ul class="list-group list-group-horizontal" *ngFor="let product of filteredProducts">
-            <li class="list-group-item product-data {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}">Nombre: <strong>{{ product.name }}</strong> | Marca: <strong>{{ product.brand ? product.brand : "Sin marca" }}</strong> | Precio de costo: <strong>${{ product.price }}</strong> | Precio de venta: <strong>${{ product.sellPrice }}</strong> | Stock: <strong>{{ product.stock }}</strong></li>
-            <a class="list-group-item list-group-item-primary list-group-item-action" data-bs-toggle="modal" data-bs-target="#updateModal" (click)="updateFormWithProduct(product.id, product.name, product.price, product.sellPrice, product.stock, product.barcode, product.brand, product.stock_limit); updateIdForDelete(product.id)">MODIFICAR</a>
-            <a class="list-group-item list-group-item-danger list-group-item-action" data-bs-toggle="modal" data-bs-target="#deleteModal" (click)="updateIdForDelete(product.id)">ELIMINAR</a>
-        </ul>
-    <!-- </li>
-</ul> -->
+<div *ngIf="!loading">
+    <ul class="list-group list-group-horizontal" *ngFor="let product of filteredProducts">
+        <li class="list-group-item product-data {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}">Nombre: <strong>{{ product.name }}</strong> | Marca: <strong>{{ product.brand ? product.brand : "Sin marca" }}</strong> | Precio de costo: <strong>${{ product.price }}</strong> | Precio de venta: <strong>${{ product.sellPrice }}</strong> | Stock: <strong>{{ product.stock }}</strong></li>
+        <a class="list-group-item list-group-item-primary list-group-item-action" data-bs-toggle="modal" data-bs-target="#updateModal" (click)="updateFormWithProduct(product.id, product.name, product.price, product.sellPrice, product.stock, product.barcode, product.brand, product.stock_limit); updateIdForDelete(product.id)">MODIFICAR</a>
+        <a class="list-group-item list-group-item-danger list-group-item-action" data-bs-toggle="modal" data-bs-target="#deleteModal" (click)="updateIdForDelete(product.id)">ELIMINAR</a>
+    </ul>
+</div>
 
 <div class="alert alert-secondary" role="alert" *ngIf="empty">
     Lista de productos vacía
