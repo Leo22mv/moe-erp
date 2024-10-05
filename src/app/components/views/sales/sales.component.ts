@@ -245,6 +245,7 @@ export class SalesComponent implements OnInit {
                   this.focusLastItem(index);
                   this.cdr.detectChanges();
                   this.updateLocalStorage();
+                  // console.log(JSON.stringify(sale, null, 2));
                 } else {
                   console.error('Error al obtener productos de la promo:', response.error);
                 }
@@ -279,16 +280,92 @@ export class SalesComponent implements OnInit {
   }
   
   insertSale(sale: any) {
+    console.log(JSON.stringify(sale, null, 2));
     if (!sale.products[sale.products.length - 1].name) {
       sale.products.pop();
     }
 
-    if (sale.products.length > 0) {
+    if (sale.products.length > 0 || sale.expressPromos.length > 0) {
 
       sale.products = sale.products.filter((product: any) => product.id !== 99999);
 
+      let uniqueArray: any[] = [];
+
+      if (sale.products.length > 0) {
+        sale.products.forEach((item: any) => {
+          if (!item.isPromo) {
+            let existent = false;
+  
+            uniqueArray.forEach((uniqueItem: any) => {
+              if (JSON.stringify(item) == JSON.stringify(uniqueItem)) {
+                existent = true;
+              }
+            });
+            
+            if (!existent) {
+              uniqueArray.push(item);
+            }
+          } else {
+            uniqueArray.push({ ...item });
+            let index = uniqueArray.findIndex((uniqueItem: any) => JSON.stringify(uniqueItem) === JSON.stringify(item));
+            uniqueArray[index].productsInPromo = [];
+            console.log("products: " + JSON.stringify(item.productsInPromo));
+            item.productsInPromo.forEach((item: any) => {
+              let existent = false;
+
+              uniqueArray[index].productsInPromo.forEach((uniqueItem: any) => {
+                if (JSON.stringify(item) == JSON.stringify(uniqueItem)) {
+                  existent = true;
+                }
+              });
+              if (!existent) {
+                uniqueArray[index].productsInPromo.push(item);
+              }
+            });
+          }
+        });
+        sale.products = uniqueArray;
+        uniqueArray = [];
+      }
+
+      if (sale.amounts.length > 0) {
+        sale.amounts.forEach((item: any) => {
+          let existent = false;
+          uniqueArray.forEach((uniqueItem: any) => {
+            if (JSON.stringify(item) == JSON.stringify(uniqueItem)) {
+              existent = true;
+            }
+          });
+          if (!existent) {
+            uniqueArray.push(item);
+          }
+        });
+        sale.amounts = uniqueArray;
+        uniqueArray = [];
+      }
+
+      // if (sale.expressPromos.length > 0) {
+      //   sale.expressPromos.forEach((expressPromo: any) => {
+      //     uniqueArray.push(expressPromo);
+      //     let index = uniqueArray.findIndex(expressPromo);
+      //     uniqueArray[index].products = [];
+      //     expressPromo.products.forEach((item: any) => {
+      //       let existent = false;
+      //       uniqueArray[index].products.forEach((uniqueItem: any) => {
+      //         if (JSON.stringify(item) == JSON.stringify(uniqueItem)) {
+      //           existent = true;
+      //         }
+      //       });
+      //       if (!existent) {
+      //         uniqueArray[index].products.push(item);
+      //       }
+      //     })
+      //   });
+      //   sale.expressPromos = uniqueArray;
+      // }
+
+      console.log(JSON.stringify(sale, null, 2));
       window.electron.send('insert-sale', sale);
-      // console.log(JSON.stringify(sale, null, 2));
 
       window.electron.receive('insert-sale-response', (response: any) => {
         if (response) {
