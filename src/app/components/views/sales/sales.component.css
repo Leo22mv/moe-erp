@@ -40,3 +40,6 @@ h1, .btn-lg {
 .expressPromoTotalInput {
     margin-top: 10px;
 }
+.list-group-item-express-promo {
+    background-color: #eee;
+}

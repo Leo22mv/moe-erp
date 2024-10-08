@@ -33,6 +33,7 @@ export class SalesByDateComponent {
         if (response.data.length < 1) {
           this.empty = true;
         } else {
+          console.log(response.data)
           this.sales = response.data;
           for (let sale of this.sales) {
             const { formattedDate, formattedTime } = this.parseDateAndTime(sale.date);

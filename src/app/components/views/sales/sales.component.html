@@ -15,12 +15,12 @@
             </div>
             <div class="card-body">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item list-group-item-secondary" *ngFor="let expressPromo of sale.expressPromos; let expressPromoIndex = index;">
-                        <button class="btn btn-dark add-product-to-express-promo-btn" (click)="addProductToExpressPromo(expressPromo)">Agregar producto</button>
+                    <li class="list-group-item list-group-item-express-promo" *ngFor="let expressPromo of sale.expressPromos; let expressPromoIndex = index;">
+                        <button class="btn btn-dark add-product-to-express-promo-btn" (click)="addProductToExpressPromo(expressPromo)" [disabled]="expressPromo.confirmed">Agregar producto</button>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item" *ngFor="let expressPromoProduct of expressPromo.products; let expressPromoProductIndex = index;">
                                 <div class="form-floating" *ngIf="!expressPromoProduct.name">
-                                    <input (keydown.enter)="onExpressPromoProductEnter(expressPromoProduct, expressPromo, expressPromoProductIndex)" [(ngModel)]="expressPromoProduct.barcode" (input)="updateExpressPromoDatalist(expressPromoProduct.barcode)" [attr.list]="'expressPromoDatalistOptions'" #floatingExpressPromoProduct name="floatingExpressPromoProduct" type="text" class="form-control" id="floatingExpressPromoProduct" placeholder="Código de barras o nombre">
+                                    <input (keydown.enter)="onExpressPromoProductEnter(expressPromoProduct, expressPromo, expressPromoProductIndex)" [(ngModel)]="expressPromoProduct.barcode" (input)="updateExpressPromoDatalist(expressPromoProduct.barcode)" [attr.list]="'expressPromoDatalistOptions'" #floatingExpressPromoProduct name="floatingExpressPromoProduct" type="text" class="form-control" id="floatingExpressPromoProduct" placeholder="Código de barras o nombre" [disabled]="expressPromo.confirmed">
                                     <label for="floatingExpressPromoProduct">Código de barras o nombre</label>
                                     <datalist id="expressPromoDatalistOptions">
                                         <option value="Cargando..." *ngIf="isLoadingExpressPromoDatalist">
@@ -34,7 +34,7 @@
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <div class="form-floating">
-                                            <input [(ngModel)]="expressPromoProduct.quantity" min="1" name="floatingExpressPromoProductQuantity" type="number" class="form-control" id="floatingExpressPromoProductQuantity" placeholder="Cantidad">
+                                            <input [(ngModel)]="expressPromoProduct.quantity" min="1" name="floatingExpressPromoProductQuantity" type="number" class="form-control" id="floatingExpressPromoProductQuantity" placeholder="Cantidad" [disabled]="expressPromo.confirmed">
                                             <label for="floatingExpressPromoProductQuantity">Cantidad</label>
                                         </div>
                                         <button type="button" class="btn-close delete-product-btn" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -44,7 +44,7 @@
                         </ul>
                         <div class="d-flex align-items-center">
                             <div class="form-floating expressPromoTotalInput">
-                                <input [(ngModel)]="expressPromo.total" (keydown.enter)="confirmExpressPromo(expressPromo, sale)" #floatingExpressPromoTotal name="floatingExpressPromoTotal" type="number" class="form-control" id="floatingExpressPromoTotal" placeholder="Total">
+                                <input [(ngModel)]="expressPromo.total" (keydown.enter)="confirmExpressPromo(expressPromo, sale)" #floatingExpressPromoTotal name="floatingExpressPromoTotal" type="number" class="form-control" id="floatingExpressPromoTotal" placeholder="Total" [disabled]="expressPromo.confirmed">
                                 <label for="floatingExpressPromoTotal">Total</label>
                             </div>
                             <button type="button" class="btn-close delete-express-promo-btn" data-bs-dismiss="modal" aria-label="Close"></button>

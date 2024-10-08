@@ -296,16 +296,17 @@ export class SalesComponent implements OnInit {
   }
   
   insertSale(sale: any) {
-    if (!sale.products[sale.products.length - 1].name) {
-      sale.products.pop();
-    }
-
-    if (sale.products.length > 0) {
-
-      sale.products = sale.products.filter((product: any) => product.id !== 99999);
+    if (sale.expressPromos.length >= 1 || sale.products.length >= 1) {
+      if (sale.products.length > 0) {
+        if (!sale.products[sale.products.length - 1].name) {
+          sale.products.pop();
+        }
+  
+        sale.products = sale.products.filter((product: any) => product.id !== 99999);
+      }
 
       window.electron.send('insert-sale', sale);
-      // console.log(JSON.stringify(sale, null, 2));
+      console.log(JSON.stringify(sale, null, 2));
 
       window.electron.receive('insert-sale-response', (response: any) => {
         if (response) {
@@ -316,8 +317,9 @@ export class SalesComponent implements OnInit {
       });
 
       this.clearSale(sale);
+      
+      this.updateLocalStorage();
     }
-    this.updateLocalStorage();
   }
 
   clearSale(sale: any) {
@@ -403,7 +405,8 @@ export class SalesComponent implements OnInit {
   addExpressPromoToSale(sale: any, i: number) {
     const newExpressPromo = {
       products: [],
-      total: null
+      total: null,
+      confirmed: false
     };
     sale.expressPromos.push({ ...newExpressPromo });
     this.updateLocalStorage();
@@ -504,6 +507,7 @@ export class SalesComponent implements OnInit {
   confirmExpressPromo(expressPromo: any, sale: any) {
     console.log(expressPromo);
     sale.total += expressPromo.total;
+    expressPromo.confirmed = true;
     this.cdr.detectChanges();
   }
 }

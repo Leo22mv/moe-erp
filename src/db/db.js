@@ -486,7 +486,10 @@ function getSalesByDate(dateGMT3, callback) {
             sale_promos.quantity AS promo_quantity,
 
             sale_amounts.amount AS extra_amount,
-            sale_amounts.description AS extra_description
+            sale_amounts.description AS extra_description,
+
+            express_promos.express_promo_id AS express_promo_id,
+            express_promos.total AS express_promo_total
 
         FROM 
             sales
@@ -503,6 +506,9 @@ function getSalesByDate(dateGMT3, callback) {
         LEFT JOIN 
             sale_amounts ON sales.id = sale_amounts.sale_id
 
+        LEFT JOIN 
+            express_promos ON sales.id = express_promos.sale_id
+
         WHERE 
             sales.date BETWEEN ? AND ?
         ORDER BY 
@@ -518,7 +524,6 @@ function getSalesByDate(dateGMT3, callback) {
             const sales = {};
 
             rows.forEach(row => {
-                // Si no existe la venta, agregarla
                 if (!sales[row.sale_id]) {
                     sales[row.sale_id] = {
                         id: row.sale_id,
@@ -526,11 +531,11 @@ function getSalesByDate(dateGMT3, callback) {
                         total: row.sale_total,
                         products: [],
                         promos: [],
-                        amounts: []
+                        amounts: [],
+                        expressPromos: []
                     };
                 }
 
-                // Si hay un producto, agregarlo
                 if (row.product_id) {
                     sales[row.sale_id].products.push({
                         id: row.product_id,
@@ -540,7 +545,6 @@ function getSalesByDate(dateGMT3, callback) {
                     });
                 }
 
-                // Si hay una promo, agregarla
                 if (row.promo_id) {
                     sales[row.sale_id].promos.push({
                         id: row.promo_id,
@@ -550,11 +554,17 @@ function getSalesByDate(dateGMT3, callback) {
                     });
                 }
 
-                // Si hay un monto adicional, agregarlo
                 if (row.extra_amount !== null) {
                     sales[row.sale_id].amounts.push({
                         amount: row.extra_amount,
                         description: row.extra_description
+                    });
+                }
+
+                if (row.express_promo_id) {
+                    sales[row.sale_id].expressPromos.push({
+                        id: row.express_promo_id,
+                        total: row.express_promo_total
                     });
                 }
             });
