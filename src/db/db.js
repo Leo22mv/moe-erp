@@ -267,18 +267,6 @@ function insertSale(sale, callback) {
                                 callback(err);
                                 return;
                             }
-
-                            expressPromo.products.forEach(promoProduct => {
-                                const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
-                                db.run(updateStockQuery, [promoProduct.quantity, promoProduct.id], (err) => {
-                                    if (err) {
-                                        console.error('Error al actualizar stock de producto en la promo express:', err.message);
-                                        db.run('ROLLBACK');
-                                        callback(err);
-                                        return;
-                                    }
-                                });
-                            });
                         });
                     });
                 }
@@ -307,6 +295,17 @@ function insertSale(sale, callback) {
                             callback(err);
                             return;
                         }
+                        expressPromo.products.forEach(promoProduct => {
+                            const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
+                            db.run(updateStockQuery, [promoProduct.quantity, promoProduct.id], (err) => {
+                                if (err) {
+                                    console.error('Error al actualizar stock de producto en la promo express:', err.message);
+                                    db.run('ROLLBACK');
+                                    callback(err);
+                                    return;
+                                }
+                            });
+                        });
                     });
                 });
             }
