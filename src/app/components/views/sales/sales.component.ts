@@ -22,6 +22,9 @@ export class SalesComponent implements OnInit {
   amount: number | null = null;
   expressPromoDatalist: any[] = [];
   isLoadingExpressPromoDatalist: boolean = true;
+  products: any[] = [];
+  filteredProducts: any[] = [];
+  loading: boolean = true;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
@@ -74,6 +77,19 @@ export class SalesComponent implements OnInit {
           console.error('Error al buscar productos para promo express:', response.error);
       }
     });
+
+    window.electron.send('get-products');
+
+    window.electron.receive('get-products-response', (response: any) => {
+      if (response.success) {
+        this.products = response.data;
+        this.filteredProducts = this.products.sort((a, b) => a.name.localeCompare(b.name));
+        this.loading = false;
+        this.cdr.detectChanges();
+      } else {
+        console.error('Error al obtener productos:', response.error);
+      }
+    });
   }
 
   addSale() {
@@ -84,6 +100,7 @@ export class SalesComponent implements OnInit {
       "expressPromos": []
     })
     this.updateLocalStorage();
+    this.cdr.detectChanges();
   }
 
   addProductToSale(sale: any, saleIndex: number) {
@@ -113,6 +130,7 @@ export class SalesComponent implements OnInit {
       if (saleInputs.length > 0) {
         saleInputs[saleInputs.length - 1].nativeElement.focus();
       }
+      this.cdr.detectChanges();
     }, 50);
     this.updateLocalStorage();
   }
@@ -282,6 +300,7 @@ export class SalesComponent implements OnInit {
     const index = this.sales.findIndex(s => s === sale);
     this.sales.splice(index, 1);
     this.updateLocalStorage();
+    this.cdr.detectChanges();
   }
 
   trackByProduct(index: number): number {
@@ -406,10 +425,16 @@ export class SalesComponent implements OnInit {
 
   updateDatalist(query: string): void {
     this.datalist = [];
-    this.isLoadingDatalist = true;
+    // this.isLoadingDatalist = true;
     if (query.length >= 1) {
-      window.electron.send('search-products', query);
-      window.electron.send('search-promos', query);
+      // window.electron.send('search-products', query);
+      // window.electron.send('search-promos', query);
+
+      this.filteredProducts = this.products.filter(product => {
+        product.name.toLowerCase().equals(query.toLowerCase());
+      });
+
+      this.datalist = this.filteredProducts;
     }
   }
 
