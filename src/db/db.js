@@ -208,6 +208,7 @@ function createSaleProductsTable() {
 // }
 
 function insertSale(sale, callback) {
+    // console.log(JSON.stringify(sale, null, 2));
     const date = moment().tz('America/Argentina/Buenos_Aires').format('YYYY-MM-DD HH:mm:ss');
     const insertSaleQuery = `INSERT INTO sales (date, total) VALUES (?, ?)`;
     
