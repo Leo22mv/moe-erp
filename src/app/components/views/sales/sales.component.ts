@@ -20,6 +20,8 @@ export class SalesComponent implements OnInit {
   datalist: any[] = [];
   isLoadingDatalist: boolean = true;
   amount: number | null = null;
+  expressPromoDatalist: any[] = [];
+  isLoadingExpressPromoDatalist: boolean = true;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
@@ -58,13 +60,28 @@ export class SalesComponent implements OnInit {
           console.error('Error al buscar promos:', response.error);
       }
     });
+
+    window.electron.receive('search-products-for-express-promo-response', (response: any) => {
+      if (response.success) {
+          if (this.expressPromoDatalist.length < 1) {
+            this.expressPromoDatalist = response.data;
+          } else {
+            this.expressPromoDatalist = [...this.expressPromoDatalist, ...response.data];
+            this.isLoadingExpressPromoDatalist = false;
+          }
+          this.cdr.detectChanges();
+      } else {
+          console.error('Error al buscar productos para promo express:', response.error);
+      }
+    });
   }
 
   addSale() {
     this.sales.push({
       "products": [],
       "total": 0,
-      "amounts": []
+      "amounts": [],
+      "expressPromos": []
     })
     this.updateLocalStorage();
   }
@@ -144,9 +161,7 @@ export class SalesComponent implements OnInit {
               const index = sale.products.indexOf(item);
               sale.products[index] = updatedProduct;
       
-              sale.total = sale.products.reduce((acc: any, product: any) => {
-                return acc + (product.price || 0) * (product.quantity || 1);
-              }, 0);
+              this.calculateTotal(sale);
             }
 
             this.addProductToSale(sale, index);
@@ -183,9 +198,7 @@ export class SalesComponent implements OnInit {
               const index = sale.products.indexOf(item);
               sale.products[index] = updatedProduct;
       
-              sale.total = sale.products.reduce((acc: any, product: any) => {
-                return acc + (product.price || 0) * (product.quantity || 1);
-              }, 0);
+              this.calculateTotal(sale);
             }
 
             this.addProductToSale(sale, index);
@@ -237,9 +250,7 @@ export class SalesComponent implements OnInit {
                   const index = sale.products.indexOf(item);
                   sale.products[index] = updatedProduct;
           
-                  sale.total = sale.products.reduce((acc: any, product: any) => {
-                    return acc + (product.price || 0) * (product.quantity || 1);
-                  }, 0);
+                  this.calculateTotal(sale);
 
                   this.addProductToSale(sale, index);
                   this.focusLastItem(index);
@@ -262,9 +273,7 @@ export class SalesComponent implements OnInit {
 
   onUpdateQuantity(item: any, sale: any, quantity: number) {
     item.quantity = item.newQuantity;
-    sale.total = sale.products.reduce((acc: any, product: any) => {
-      return acc + (product.price || 0) * (product.quantity || 1);
-    }, 0);
+    this.calculateTotal(sale);
     this.cdr.detectChanges();
     this.updateLocalStorage();
   }
@@ -280,14 +289,14 @@ export class SalesComponent implements OnInit {
   }
   
   insertSale(sale: any) {
-    console.log(JSON.stringify(sale, null, 2));
-    if (!sale.products[sale.products.length - 1].name) {
-      sale.products.pop();
-    }
-
-    if (sale.products.length > 0 || sale.expressPromos.length > 0) {
-
-      sale.products = sale.products.filter((product: any) => product.id !== 99999);
+    if (sale.expressPromos.length >= 1 || sale.products.length >= 1) {
+      if (sale.products.length > 0) {
+        if (!sale.products[sale.products.length - 1].name) {
+          sale.products.pop();
+        }
+  
+        sale.products = sale.products.filter((product: any) => product.id !== 99999);
+      }
 
       let uniqueArray: any[] = [];
 
@@ -366,6 +375,7 @@ export class SalesComponent implements OnInit {
 
       console.log(JSON.stringify(sale, null, 2));
       window.electron.send('insert-sale', sale);
+      console.log(JSON.stringify(sale, null, 2));
 
       window.electron.receive('insert-sale-response', (response: any) => {
         if (response) {
@@ -376,14 +386,16 @@ export class SalesComponent implements OnInit {
       });
 
       this.clearSale(sale);
+      
+      this.updateLocalStorage();
     }
-    this.updateLocalStorage();
   }
 
   clearSale(sale: any) {
     sale.products = [];
     sale.total = 0;
     sale.amounts = [];
+    sale.expressPromos = [];
     this.updateLocalStorage();
   }
 
@@ -437,9 +449,7 @@ export class SalesComponent implements OnInit {
     const indexOf = sale.products.indexOf(item);
     sale.products[indexOf] = updatedProduct;
 
-    sale.total = sale.products.reduce((acc: any, product: any) => {
-      return acc + (product.price || 0) * (product.quantity || 1);
-    }, 0);
+    this.calculateTotal(sale);
 
     this.addProductToSale(sale, index);
     this.focusLastItem(saleIndex);
@@ -457,5 +467,140 @@ export class SalesComponent implements OnInit {
       }
     }, 100);
     this.updateLocalStorage();
+  }
+
+  addExpressPromoToSale(sale: any, i: number) {
+    const newExpressPromo = {
+      products: [],
+      total: null,
+      confirmed: false
+    };
+    sale.expressPromos.push({ ...newExpressPromo });
+    this.updateLocalStorage();
+    this.cdr.detectChanges();
+  }
+
+  addProductToExpressPromo(expressPromo: any) {
+    const newExpressPromoProduct = {
+      id: null,
+      name: null,
+      price: null,
+      quantity: 1,
+      barcode: null
+    };
+    expressPromo.products.push({ ...newExpressPromoProduct });
+    this.updateLocalStorage();
+    this.cdr.detectChanges();
+  }
+
+  updateExpressPromoDatalist(query: string): void {
+    this.expressPromoDatalist = [];
+    this.isLoadingExpressPromoDatalist = true;
+    if (query.length >= 1) {
+      window.electron.send('search-products-for-express-promo', query);
+    }
+  }
+
+  onExpressPromoProductEnter(item: any, sale: any, index: number) {
+    if (this.isNumeric(item.barcode)) {
+      window.electron.send('get-product-by-barcode-for-express-promo', item.barcode);
+
+      window.electron.receive('get-product-by-barcode-for-express-promo-response', (response: any) => {
+        if (response.success) {
+          const updatedProduct = {
+            ...item,
+            name: response.data.name,
+            price: response.data.sellPrice,
+            id: response.data.id,
+          };
+
+          let existentOnSale: boolean = false;
+  
+          for (let product of sale.products) {
+            if (product.name == updatedProduct.name) {
+              item.barcode = "";
+              existentOnSale = true;
+              break
+            }
+          }
+
+          if (!existentOnSale)  {
+            const index = sale.products.indexOf(item);
+            sale.products[index] = updatedProduct;
+          }
+
+          this.cdr.detectChanges();
+        } else {
+          console.error('Error al obtener productos para promo express:', response.error);
+        }
+        this.updateLocalStorage();
+      });
+    } else {
+      window.electron.send('search-products-for-express-promo', item.barcode);
+
+      window.electron.receive('search-products-for-express-promo-response', (response: any) => {
+        if (response.success && response.data[0].name == item.barcode) {
+          const updatedProduct = {
+            ...item,
+            name: response.data[0].name,
+            price: response.data[0].sellPrice,
+            id: response.data[0].id,
+          };
+
+          let existentOnSale: boolean = false;
+  
+          for (let product of sale.products) {
+            if (product.name == updatedProduct.name) {
+              item.barcode = "";
+              existentOnSale = true;
+              break
+            }
+          }
+
+          if (!existentOnSale)  {
+            const index = sale.products.indexOf(item);
+            sale.products[index] = updatedProduct;
+          }
+
+          this.cdr.detectChanges();
+        } else {
+          console.error('Error al obtener productos:', response.error);
+        }
+        this.updateLocalStorage();
+      });
+    }
+  }
+
+  confirmExpressPromo(expressPromo: any, sale: any) {
+    console.log(expressPromo);
+    sale.total += expressPromo.total;
+    expressPromo.confirmed = true;
+    this.cdr.detectChanges();
+  }
+
+  calculateTotal(sale: any) {
+    let total = sale.products.reduce((acc: any, product: any) => {
+      return acc + (product.price || 0) * (product.quantity || 1);
+    }, 0);
+
+    let expressPromosTotal = sale.expressPromos.reduce((acc: any, promo: any) => {
+      if (promo.confirmed) {
+        return acc + (promo.total || 0);
+      }
+      return acc;
+    }, 0);
+  
+    sale.total = total + expressPromosTotal;
+  }
+
+  deleteExpressPromo(sale: any, expressPromoIndex: number) {
+    sale.expressPromos.splice(expressPromoIndex, 1);
+    this.calculateTotal(sale);
+    this.cdr.detectChanges();
+  }
+
+  deleteExpressPromoProduct(expressPromo: any, expressPromoProductIndex: number) {
+    expressPromo.products.splice(expressPromoProductIndex, 1);
+    this.cdr.detectChanges();
   }
 }
