@@ -161,9 +161,7 @@ export class SalesComponent implements OnInit {
               const index = sale.products.indexOf(item);
               sale.products[index] = updatedProduct;
       
-              sale.total = sale.products.reduce((acc: any, product: any) => {
-                return acc + (product.price || 0) * (product.quantity || 1);
-              }, 0);
+              this.calculateTotal(sale);
             }
 
             this.addProductToSale(sale, index);
@@ -200,9 +198,7 @@ export class SalesComponent implements OnInit {
               const index = sale.products.indexOf(item);
               sale.products[index] = updatedProduct;
       
-              sale.total = sale.products.reduce((acc: any, product: any) => {
-                return acc + (product.price || 0) * (product.quantity || 1);
-              }, 0);
+              this.calculateTotal(sale);
             }
 
             this.addProductToSale(sale, index);
@@ -254,9 +250,7 @@ export class SalesComponent implements OnInit {
                   const index = sale.products.indexOf(item);
                   sale.products[index] = updatedProduct;
           
-                  sale.total = sale.products.reduce((acc: any, product: any) => {
-                    return acc + (product.price || 0) * (product.quantity || 1);
-                  }, 0);
+                  this.calculateTotal(sale);
 
                   this.addProductToSale(sale, index);
                   this.focusLastItem(index);
@@ -279,9 +273,7 @@ export class SalesComponent implements OnInit {
 
   onUpdateQuantity(item: any, sale: any, quantity: number) {
     item.quantity = item.newQuantity;
-    sale.total = sale.products.reduce((acc: any, product: any) => {
-      return acc + (product.price || 0) * (product.quantity || 1);
-    }, 0);
+    this.calculateTotal(sale);
     this.cdr.detectChanges();
     this.updateLocalStorage();
   }
@@ -457,9 +449,7 @@ export class SalesComponent implements OnInit {
     const indexOf = sale.products.indexOf(item);
     sale.products[indexOf] = updatedProduct;
 
-    sale.total = sale.products.reduce((acc: any, product: any) => {
-      return acc + (product.price || 0) * (product.quantity || 1);
-    }, 0);
+    this.calculateTotal(sale);
 
     this.addProductToSale(sale, index);
     this.focusLastItem(saleIndex);
@@ -585,6 +575,32 @@ export class SalesComponent implements OnInit {
     console.log(expressPromo);
     sale.total += expressPromo.total;
     expressPromo.confirmed = true;
+    this.cdr.detectChanges();
+  }
+
+  calculateTotal(sale: any) {
+    let total = sale.products.reduce((acc: any, product: any) => {
+      return acc + (product.price || 0) * (product.quantity || 1);
+    }, 0);
+
+    let expressPromosTotal = sale.expressPromos.reduce((acc: any, promo: any) => {
+      if (promo.confirmed) {
+        return acc + (promo.total || 0);
+      }
+      return acc;
+    }, 0);
+  
+    sale.total = total + expressPromosTotal;
+  }
+
+  deleteExpressPromo(sale: any, expressPromoIndex: number) {
+    sale.expressPromos.splice(expressPromoIndex, 1);
+    this.calculateTotal(sale);
+    this.cdr.detectChanges();
+  }
+
+  deleteExpressPromoProduct(expressPromo: any, expressPromoProductIndex: number) {
+    expressPromo.products.splice(expressPromoProductIndex, 1);
     this.cdr.detectChanges();
   }
 }

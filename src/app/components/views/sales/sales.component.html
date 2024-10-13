@@ -37,7 +37,7 @@
                                             <input [(ngModel)]="expressPromoProduct.quantity" min="1" name="floatingExpressPromoProductQuantity" type="number" class="form-control" id="floatingExpressPromoProductQuantity" placeholder="Cantidad" [disabled]="expressPromo.confirmed">
                                             <label for="floatingExpressPromoProductQuantity">Cantidad</label>
                                         </div>
-                                        <button type="button" class="btn-close delete-product-btn" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        <button (click)="deleteExpressPromoProduct(expressPromo, expressPromoProductIndex)" type="button" class="btn-close delete-product-btn" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                 </div>
                             </li>
@@ -47,7 +47,7 @@
                                 <input [(ngModel)]="expressPromo.total" (keydown.enter)="confirmExpressPromo(expressPromo, sale)" #floatingExpressPromoTotal name="floatingExpressPromoTotal" type="number" class="form-control" id="floatingExpressPromoTotal" placeholder="Total" [disabled]="expressPromo.confirmed">
                                 <label for="floatingExpressPromoTotal">Total</label>
                             </div>
-                            <button type="button" class="btn-close delete-express-promo-btn" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button (click)="deleteExpressPromo(sale, expressPromoIndex)" type="button" class="btn-close delete-express-promo-btn" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                     </li>
                     <li class="list-group-item" *ngFor="let product of sale.products; let productIndex = index; trackBy: trackByProduct">
