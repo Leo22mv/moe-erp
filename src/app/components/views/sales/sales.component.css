@@ -14,7 +14,7 @@ h1, .btn-lg {
 .card-body {
     padding: 0;
 }
-#floatingProductName {
+#floatingProductName, .add-product-to-express-promo-btn {
     margin-bottom: 10px;
 }
 .row {
@@ -28,7 +28,7 @@ h1, .btn-lg {
 .btn-close {
     margin-right: 10px;
 }
-.delete-product-btn {
+.delete-product-btn, .delete-express-promo-btn {
     margin-left: 15px;
 }
 .add-by-barcode-or-name {
@@ -36,4 +36,10 @@ h1, .btn-lg {
 }
 .add-amount {
     width: 28%;
+}
+.expressPromoTotalInput {
+    margin-top: 10px;
+}
+.list-group-item-express-promo {
+    background-color: #eee;
 }

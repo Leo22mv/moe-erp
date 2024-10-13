@@ -20,7 +20,10 @@ const { createTable,
         deletePromo,
         createSaleAmountsTable,
         createSalePromosTable,
-        getProductsByPromo
+        getProductsByPromo,
+        createExpressPromosTable,
+        insertExpressPromo,
+        getExpressPromosBySaleId
       } = require('./db/db');
 const { ipcMain } = require('electron');
 
@@ -47,6 +50,7 @@ app.whenReady().then(() => {
   createPromoProductsTable();
   createSaleAmountsTable();
   createSalePromosTable();
+  createExpressPromosTable();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -199,6 +203,49 @@ ipcMain.on('get-products-by-promo', (event, promoId) => {
       event.reply('get-products-by-promo-response', { success: false, error: 'Error al obtener ventas por fecha: ' + err.message });
     } else {
       event.reply('get-products-by-promo-response', { success: true, data: sales });
+    }
+  });
+});
+
+ipcMain.on('search-products-for-express-promo', (event, query) => {
+  searchProducts(query, (err, results) => {
+    if (err) {
+      event.reply('search-products-for-express-promo-response', { success: false, error: 'Error al obtener búsqueda de productos para promo expresssssss: ' + err.message });
+    } else {
+      event.reply('search-products-for-express-promo-response', { success: true, data: results });
+    }
+  });
+});
+
+ipcMain.on('get-product-by-barcode-for-express-promo', (event, productBarcode) => {
+  getProductByBarcode(productBarcode, (err, product) => {
+    if (err) {
+        console.error('Error retrieving products for express promo:', err.message);
+        event.reply('get-product-by-barcode-for-express-promo-response', { success: false, error: err.message });
+    } else {
+        event.reply('get-product-by-barcode-for-express-promo-response', { success: true, data: product });
+    }
+  });
+});
+
+ipcMain.on('search-products-for-express-promo', (event, query) => {
+  searchProducts(query, (err, results) => {
+    if (err) {
+      event.reply('search-products-for-express-promo-response', { success: false, error: 'Error al obtener búsqueda de productos para promo express: ' + err.message });
+    } else {
+      event.reply('search-products-for-express-promo-response', { success: true, data: results });
+    }
+  });
+});
+
+ipcMain.on('insert-express-promo', (event, saleId, total) => {
+  insertExpressPromo(saleId, total, (err) => {
+    if (err) {
+      console.error('Error al registrar promo express:', err.message);
+      event.reply('add-promo-response', 'Error al registrar la promo');
+    } else {
+      console.log('Promo express agregada correctamente')
+      event.reply('add-promo-response', 'Promo agregada correctamente');
     }
   });
 });
