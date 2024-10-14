@@ -18,7 +18,7 @@ export class SalesComponent implements OnInit {
   barcodeListeningInput = null;
   @ViewChildren('floatingProduct') floatingProductInputs!: QueryList<ElementRef>;
   datalist: any[] = [];
-  isLoadingDatalist: boolean = true;
+  isLoadingDatalist: boolean = false;
   amount: number | null = null;
   expressPromoDatalist: any[] = [];
   isLoadingExpressPromoDatalist: boolean = true;
@@ -83,7 +83,7 @@ export class SalesComponent implements OnInit {
     window.electron.receive('get-products-response', (response: any) => {
       if (response.success) {
         this.products = response.data;
-        this.filteredProducts = this.products.sort((a, b) => a.name.localeCompare(b.name));
+        this.filteredProducts = this.products;
         this.loading = false;
         this.cdr.detectChanges();
       } else {
@@ -415,7 +415,9 @@ export class SalesComponent implements OnInit {
     sale.total = 0;
     sale.amounts = [];
     sale.expressPromos = [];
+    this.filteredProducts;
     this.updateLocalStorage();
+    this.cdr.detectChanges();
   }
 
   updateLocalStorage(): void {
@@ -424,17 +426,31 @@ export class SalesComponent implements OnInit {
   }
 
   updateDatalist(query: string): void {
+    console.log("update");
     this.datalist = [];
+    this.filteredProducts = [];
     // this.isLoadingDatalist = true;
     if (query.length >= 1) {
+        this.cdr.detectChanges();
       // window.electron.send('search-products', query);
       // window.electron.send('search-promos', query);
 
       this.filteredProducts = this.products.filter(product => {
-        product.name.toLowerCase().equals(query.toLowerCase());
+        //console.log(product.name.toLowerCase() + " es igual a " + query.toLowerCase());
+        //console.log(product.name.toLowerCase().includes(query.toLowerCase()));
+
+        const isMatch = product.name.toLowerCase().includes(query.toLowerCase());
+        //console.log(isMatch);
+        this.cdr.detectChanges();
+        return isMatch;
       });
 
+      //console.log("filteredProducts: " + JSON.stringify(this.filteredProducts, null, 2));
+
       this.datalist = this.filteredProducts;
+
+      this.cdr.detectChanges();
+      console.log("updated");
     }
   }
 
