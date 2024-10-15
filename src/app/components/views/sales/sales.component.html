@@ -28,7 +28,7 @@
                                         <label for="floatingExpressPromoProduct">Código de barras o nombre</label>
                                         <datalist id="expressPromoDatalistOptions">
                                             <option value="Cargando..." *ngIf="isLoadingExpressPromoDatalist">
-                                            <option *ngFor="let option of expressPromoDatalist" value="{{ option.name }}">
+                                            <option *ngFor="let option of expressPromoDatalist; trackBy: trackByProductName" value="{{ option.name }}">
                                         </datalist>
                                     </div>
                                     <div *ngIf="expressPromoProduct.name">
@@ -57,11 +57,11 @@
                         <li class="list-group-item" *ngFor="let product of sale.products; let productIndex = index; trackBy: trackByProduct">
                             <div class="d-flex justify-content-between align-items-center" *ngIf="!product.id&&!product.promoId">
                                 <div class="form-floating add-by-barcode-or-name">
-                                    <input (input)="updateDatalist(product.barcode)" [attr.list]="'datalistOptions'" #floatingProduct [(ngModel)]="product.barcode" (keydown)="onEnter($event, product, sale, i)" name="floatingProduct" type="text" class="form-control" id="floatingProduct" placeholder="Código de barras o nombre">
+                                    <input (input)="onSearchChange(product.barcode)" [attr.list]="'datalistOptions'" #floatingProduct [(ngModel)]="product.barcode" (keydown)="onEnter($event, product, sale, i)" name="floatingProduct" type="text" class="form-control" id="floatingProduct" placeholder="Código de barras o nombre">
                                     <label for="floatingProduct">Código de barras o nombre</label>
                                     <datalist id="datalistOptions">
                                         <option value="Cargando..." *ngIf="isLoadingDatalist">
-                                        <option *ngFor="let option of datalist" value="{{ option.name }}">
+                                        <option *ngFor="let option of datalist; trackBy: trackByProductName" value="{{ option.name }}">
                                     </datalist>
                                 </div>
                                 <div class="form-floating add-amount">

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, ElementRef, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { debounceTime, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-sales',
@@ -25,6 +26,9 @@ export class SalesComponent implements OnInit {
   products: any[] = [];
   filteredProducts: any[] = [];
   loading: boolean = true;
+  promos: any[] = [];
+  searchSubject = new Subject<string>();
+  expressPromoSearchSubject = new Subject<string>();
 
   constructor(private cdr: ChangeDetectorRef) { }
 
@@ -86,6 +90,31 @@ export class SalesComponent implements OnInit {
         this.filteredProducts = this.products;
         this.loading = false;
         this.cdr.detectChanges();
+      } else {
+        console.error('Error al obtener productos:', response.error);
+      }
+    });
+
+    this.searchSubject
+      .pipe(debounceTime(500))
+      .subscribe(term => {
+        this.updateDatalist(term);
+      });
+
+    this.expressPromoSearchSubject
+      .pipe(debounceTime(500))
+      .subscribe(term => {
+        this.updateExpressPromoDatalist(term);
+      });
+
+    window.electron.send('get-promos');
+
+    window.electron.receive('get-promos-response', (response: any) => {
+      if (response.success) {
+        this.promos = response.data;
+        this.loading = false;
+        this.cdr.detectChanges();
+        console.log(this.promos);
       } else {
         console.error('Error al obtener productos:', response.error);
       }
@@ -426,7 +455,7 @@ export class SalesComponent implements OnInit {
   }
 
   updateDatalist(query: string): void {
-    console.log("update");
+    //console.log("update");
     this.datalist = [];
     this.filteredProducts = [];
     // this.isLoadingDatalist = true;
@@ -445,12 +474,34 @@ export class SalesComponent implements OnInit {
         return isMatch;
       });
 
-      //console.log("filteredProducts: " + JSON.stringify(this.filteredProducts, null, 2));
+      this.filteredProducts = this.products.filter(product => {
+        //console.log(product.name.toLowerCase() + " es igual a " + query.toLowerCase());
+        //console.log(product.name.toLowerCase().includes(query.toLowerCase()));
+
+        const isMatch = product.name.toLowerCase().includes(query.toLowerCase());
+        //console.log(isMatch);
+        this.cdr.detectChanges();
+        return isMatch;
+      });
+
+      const filteredPromos = this.promos.filter(promo => {
+        //console.log(promo.name.toLowerCase() + " es igual a " + query.toLowerCase());
+        //console.log(promo.name.toLowerCase().includes(query.toLowerCase()));
+
+        const isMatch = promo.name.toLowerCase().includes(query.toLowerCase());
+        //console.log(isMatch);
+        this.cdr.detectChanges();
+        return isMatch;
+      });
+
+      this.filteredProducts = [...this.filteredProducts, ...filteredPromos];
+
+      console.log("filteredProducts: " + JSON.stringify(this.filteredProducts, null, 2));
 
       this.datalist = this.filteredProducts;
 
       this.cdr.detectChanges();
-      console.log("updated");
+      //console.log("updated");
     }
   }
 
@@ -506,6 +557,8 @@ export class SalesComponent implements OnInit {
       if (saleInputs.length > 0) {
         saleInputs[saleInputs.length - 1].nativeElement.focus();
       }
+
+      this.cdr.detectChanges();
     }, 100);
     this.updateLocalStorage();
   }
@@ -642,6 +695,24 @@ export class SalesComponent implements OnInit {
 
   deleteExpressPromoProduct(expressPromo: any, expressPromoProductIndex: number) {
     expressPromo.products.splice(expressPromoProductIndex, 1);
+    this.cdr.detectChanges();
+  }
+
+  onSearchChange(searchValue: string): void {
+    this.datalist = [];
+    this.filteredProducts = [];
+    this.searchSubject.next(searchValue);
+    this.cdr.detectChanges();
+  }
+
+  trackByProductName(index: number, item: any): number {
+    return item.name;
+  }
+  
+  onExpressPromoSearchChange(searchValue: string): void {
+    this.expressPromoDatalist = [];
+    this.filteredProducts = [];
+    this.searchSubject.next(searchValue);
     this.cdr.detectChanges();
   }
 }
