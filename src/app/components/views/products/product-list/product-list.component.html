@@ -7,7 +7,7 @@
     <span class="visually-hidden">Loading...</span>
 </div>
 
-<div *ngIf="!loading">
+<div *ngIf="!loading" class="product-list">
     <ul class="list-group list-group-horizontal" *ngFor="let product of filteredProducts">
         <li class="list-group-item product-data {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}">Nombre: <strong>{{ product.name }}</strong> | Marca: <strong>{{ product.brand ? product.brand : "Sin marca" }}</strong> | Precio de costo: <strong>${{ product.price }}</strong> | Precio de venta: <strong>${{ product.sellPrice }}</strong> | Stock: <strong>{{ product.stock }}</strong></li>
         <a class="list-group-item list-group-item-primary list-group-item-action" data-bs-toggle="modal" data-bs-target="#updateModal" (click)="updateFormWithProduct(product.id, product.name, product.price, product.sellPrice, product.stock, product.barcode, product.brand, product.stock_limit); updateIdForDelete(product.id)">MODIFICAR</a>

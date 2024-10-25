@@ -19,3 +19,6 @@ a {
 .list-group-item-action {
     width: min-content;
 }
+.product-list {
+    margin-bottom: 15px;
+}

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, ElementRef, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { debounceTime, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-sales',
@@ -18,10 +19,17 @@ export class SalesComponent implements OnInit {
   barcodeListeningInput = null;
   @ViewChildren('floatingProduct') floatingProductInputs!: QueryList<ElementRef>;
   datalist: any[] = [];
-  isLoadingDatalist: boolean = true;
+  isLoadingDatalist: boolean = false;
   amount: number | null = null;
   expressPromoDatalist: any[] = [];
   isLoadingExpressPromoDatalist: boolean = true;
+  products: any[] = [];
+  filteredProducts: any[] = [];
+  loading: boolean = true;
+  promos: any[] = [];
+  searchSubject = new Subject<string>();
+  expressPromoSearchSubject = new Subject<string>();
+  productMap: Map<string, any> = new Map();
 
   constructor(private cdr: ChangeDetectorRef) { }
 
@@ -74,6 +82,49 @@ export class SalesComponent implements OnInit {
           console.error('Error al buscar productos para promo express:', response.error);
       }
     });
+
+    window.electron.send('get-products');
+
+    window.electron.receive('get-products-response', (response: any) => {
+      if (response.success) {
+        this.products = response.data;
+        this.products.forEach(product => {
+          this.productMap.set(product.name, product);
+          // console.log(this.productMap);
+        });
+        this.filteredProducts = this.products;
+        this.loading = false;
+        // console.log(this.productMap);
+        this.cdr.detectChanges();
+      } else {
+        console.error('Error al obtener productos:', response.error);
+      }
+    });
+
+    this.searchSubject
+      .pipe(debounceTime(500))
+      .subscribe(term => {
+        this.updateDatalist(term);
+      });
+
+    this.expressPromoSearchSubject
+      .pipe(debounceTime(500))
+      .subscribe(term => {
+        this.updateExpressPromoDatalist(term);
+      });
+
+    window.electron.send('get-promos');
+
+    window.electron.receive('get-promos-response', (response: any) => {
+      if (response.success) {
+        this.promos = response.data;
+        this.loading = false;
+        this.cdr.detectChanges();
+        // console.log(this.promos);
+      } else {
+        console.error('Error al obtener productos:', response.error);
+      }
+    });
   }
 
   addSale() {
@@ -84,6 +135,7 @@ export class SalesComponent implements OnInit {
       "expressPromos": []
     })
     this.updateLocalStorage();
+    this.cdr.detectChanges();
   }
 
   addProductToSale(sale: any, saleIndex: number) {
@@ -113,6 +165,7 @@ export class SalesComponent implements OnInit {
       if (saleInputs.length > 0) {
         saleInputs[saleInputs.length - 1].nativeElement.focus();
       }
+      this.cdr.detectChanges();
     }, 50);
     this.updateLocalStorage();
   }
@@ -282,6 +335,7 @@ export class SalesComponent implements OnInit {
     const index = this.sales.findIndex(s => s === sale);
     this.sales.splice(index, 1);
     this.updateLocalStorage();
+    this.cdr.detectChanges();
   }
 
   trackByProduct(index: number): number {
@@ -396,7 +450,9 @@ export class SalesComponent implements OnInit {
     sale.total = 0;
     sale.amounts = [];
     sale.expressPromos = [];
+    this.amount = null;
     this.updateLocalStorage();
+    this.cdr.detectChanges();
   }
 
   updateLocalStorage(): void {
@@ -405,11 +461,56 @@ export class SalesComponent implements OnInit {
   }
 
   updateDatalist(query: string): void {
+    //console.log("update");
     this.datalist = [];
-    this.isLoadingDatalist = true;
+    this.filteredProducts = [];
+    // this.isLoadingDatalist = true;
     if (query.length >= 1) {
-      window.electron.send('search-products', query);
-      window.electron.send('search-promos', query);
+        this.cdr.detectChanges();
+      // window.electron.send('search-products', query);
+      // window.electron.send('search-promos', query);
+
+      this.filteredProducts = this.products.filter(product => {
+        //console.log(product.name.toLowerCase() + " es igual a " + query.toLowerCase());
+        //console.log(product.name.toLowerCase().includes(query.toLowerCase()));
+
+        const isMatch = product.name.toLowerCase().includes(query.toLowerCase());
+        //console.log(isMatch);
+        this.cdr.detectChanges();
+        return isMatch;
+      });
+
+      const filteredPromos = this.promos.filter(promo => {
+        //console.log(promo.name.toLowerCase() + " es igual a " + query.toLowerCase());
+        //console.log(promo.name.toLowerCase().includes(query.toLowerCase()));
+
+        const isMatch = promo.name.toLowerCase().includes(query.toLowerCase());
+        //console.log(isMatch);
+        this.cdr.detectChanges();
+        return isMatch;
+      });
+
+      this.filteredProducts = [...this.filteredProducts, ...filteredPromos];
+
+      // console.log("filteredProducts: " + JSON.stringify(this.filteredProducts, null, 2));
+
+      this.datalist = this.filteredProducts;
+
+      this.cdr.detectChanges();
+      //console.log("updated");
+
+      
+      // const searchTerm = query.toLowerCase();
+
+      // this.filteredProducts = Array.from(this.productMap.keys())
+      //   .filter(key => key.toLowerCase().includes(searchTerm))
+      //   .map(key => this.productMap.get(key));
+      
+      // this.datalist = this.filteredProducts;
+      
+      // console.log('Búsqueda: ' + JSON.stringify(this.filteredProducts, null, 2));
+      
+      // this.cdr.detectChanges();
     }
   }
 
@@ -432,27 +533,42 @@ export class SalesComponent implements OnInit {
   }
 
   insertAmount(sale: any, item: any, index: number, saleIndex: number) {
-    sale.amounts.push({
-      amount: this.amount,
-      description: item.barcode
-    });
+    if (item.barcode.length >= 1) {
+      sale.amounts.push({
+        amount: this.amount,
+        description: item.barcode
+      });
+  
+      const updatedProduct = {
+        ...item,
+        name: item.barcode,
+        price: this.amount,
+        id: 99999
+      };
+  
+      this.amount = null;
+  
+      const indexOf = sale.products.indexOf(item);
+      sale.products[indexOf] = updatedProduct;
+  
+      this.calculateTotal(sale);
+  
+      this.addProductToSale(sale, index);
+      this.focusLastItem(saleIndex);
+    } else {
+      // document.getElementById('floatingProduct' + index)?.classList.add('is-invalid');
+      
+      const toastLiveExample = document.getElementById('amountDescriptionErrorToast');
 
-    const updatedProduct = {
-      ...item,
-      name: item.barcode,
-      price: this.amount,
-      id: 99999
-    };
+      if (toastLiveExample) {
+        const toast = new (window as any).bootstrap.Toast(toastLiveExample, {
+          delay: 10000
+        });
+        toast.show();
+      }
 
-    this.amount = null;
-
-    const indexOf = sale.products.indexOf(item);
-    sale.products[indexOf] = updatedProduct;
-
-    this.calculateTotal(sale);
-
-    this.addProductToSale(sale, index);
-    this.focusLastItem(saleIndex);
+      this.cdr.detectChanges();
+    }
   }
 
   focusLastItem(saleIndex: number) {
@@ -465,6 +581,8 @@ export class SalesComponent implements OnInit {
       if (saleInputs.length > 0) {
         saleInputs[saleInputs.length - 1].nativeElement.focus();
       }
+
+      this.cdr.detectChanges();
     }, 100);
     this.updateLocalStorage();
   }
@@ -494,10 +612,32 @@ export class SalesComponent implements OnInit {
   }
 
   updateExpressPromoDatalist(query: string): void {
-    this.expressPromoDatalist = [];
-    this.isLoadingExpressPromoDatalist = true;
-    if (query.length >= 1) {
-      window.electron.send('search-products-for-express-promo', query);
+    if (query.length >= 3) {
+      // window.electron.send('search-products-for-express-promo', query);
+
+      this.isLoadingExpressPromoDatalist = true;
+
+      this.expressPromoDatalist = [];
+      this.filteredProducts = [];
+      this.cdr.detectChanges();
+
+      this.filteredProducts = this.products.filter(product => {
+        const isMatch = product.name.toLowerCase().includes(query.toLowerCase());
+        this.cdr.detectChanges();
+        return isMatch;
+      });
+
+      const filteredPromos = this.promos.filter(promo => {
+        const isMatch = promo.name.toLowerCase().includes(query.toLowerCase());
+        this.cdr.detectChanges();
+        return isMatch;
+      });
+
+      this.filteredProducts = [...this.filteredProducts, ...filteredPromos];
+
+      this.expressPromoDatalist = this.filteredProducts;
+
+      this.cdr.detectChanges();
     }
   }
 
@@ -602,5 +742,34 @@ export class SalesComponent implements OnInit {
   deleteExpressPromoProduct(expressPromo: any, expressPromoProductIndex: number) {
     expressPromo.products.splice(expressPromoProductIndex, 1);
     this.cdr.detectChanges();
+  }
+
+  onSearchChange(searchValue: string): void {
+    this.datalist = [];
+    this.filteredProducts = [];
+    if (searchValue.length >= 3) {
+      this.searchSubject.next(searchValue);
+    }
+    this.cdr.detectChanges();
+  }
+
+  trackByProductName(index: number, item: any): number {
+    return item.name;
+  }
+  
+  onExpressPromoSearchChange(searchValue: string): void {
+    this.expressPromoDatalist = [];
+    this.filteredProducts = [];
+    if (searchValue.length >= 3) {
+      this.expressPromoSearchSubject.next(searchValue);
+    }
+    this.cdr.detectChanges();
+  }
+
+  onBlur() {
+    console.log("blur")
+    this.datalist = [];
+    this.expressPromoDatalist = [];
+    this.filteredProducts = [];
   }
 }
