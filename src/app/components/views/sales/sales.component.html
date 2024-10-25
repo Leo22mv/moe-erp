@@ -28,6 +28,7 @@
                                         <label for="floatingExpressPromoProduct">Código de barras o nombre</label>
                                         <datalist id="expressPromoDatalistOptions">
                                             <!-- <option value="Cargando..." *ngIf="isLoadingExpressPromoDatalist"> -->
+                                            <!-- <option *ngFor="let option of expressPromoDatalist; trackBy: trackByProductName" value="{{ option.name + ' - ' + option.brand ? option.brand : 'Sin marca' }}"> -->
                                             <option *ngFor="let option of expressPromoDatalist; trackBy: trackByProductName" value="{{ option.name }}">
                                         </datalist>
                                     </div>
@@ -60,14 +61,14 @@
                                     <input (blur)="onBlur()" (input)="onSearchChange(product.barcode)" [attr.list]="'datalistOptions'" #floatingProduct [(ngModel)]="product.barcode" (keydown)="onEnter($event, product, sale, i)" name="floatingProduct" type="text" class="form-control" id="floatingProduct" placeholder="Código de barras o nombre">
                                     <label for="floatingProduct">Código de barras o nombre</label>
                                     <datalist id="datalistOptions">
-                                        <option value="Cargando..." *ngIf="isLoadingDatalist">
-                                        <option *ngFor="let option of datalist; trackBy: trackByProductName" value="{{ option.name }}">
+                                        <!-- <option *ngFor="let option of datalist; trackBy: trackByProductName" value="{{ option.name }}"> -->
+                                        <option *ngFor="let option of datalist;" value="{{ option.name }}">{{ option.brand }}</option>
                                     </datalist>
                                 </div>
                                 <div class="form-floating add-amount">
                                     <div class="input-group">
                                         <div class="input-group-text">$</div>
-                                        <input [(ngModel)]="amount" (keydown.enter)="insertAmount(sale, product, productIndex, i)" #floatingAmount name="floatingAmount" type="number" class="form-control" id="{{ 'floatingAmount' + productIndex}}" placeholder="Monto">
+                                        <input [(ngModel)]="sale.amount" (keydown.enter)="insertAmount(sale, product, productIndex, i)" #floatingAmount name="floatingAmount" type="number" class="form-control" id="{{ 'floatingAmount' + productIndex}}" placeholder="Monto">
                                     </div>
                                     <label class="visually-hidden" for="{{ 'floatingAmount' + productIndex}}">Monto</label>
                                 </div>

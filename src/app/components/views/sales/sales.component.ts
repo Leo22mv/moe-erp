@@ -19,10 +19,7 @@ export class SalesComponent implements OnInit {
   barcodeListeningInput = null;
   @ViewChildren('floatingProduct') floatingProductInputs!: QueryList<ElementRef>;
   datalist: any[] = [];
-  isLoadingDatalist: boolean = false;
-  amount: number | null = null;
   expressPromoDatalist: any[] = [];
-  isLoadingExpressPromoDatalist: boolean = true;
   products: any[] = [];
   filteredProducts: any[] = [];
   loading: boolean = true;
@@ -46,7 +43,6 @@ export class SalesComponent implements OnInit {
             this.datalist = response.data;
           } else {
             this.datalist = [...this.datalist, ...response.data];
-            this.isLoadingDatalist = false;
           }
           this.cdr.detectChanges();
       } else {
@@ -60,7 +56,6 @@ export class SalesComponent implements OnInit {
           this.datalist = response.data;
         } else {
           this.datalist = [...this.datalist, ...response.data];
-          this.isLoadingDatalist = false;
         }
         // console.log(JSON.stringify(response.data, null, 2));
         this.cdr.detectChanges();
@@ -75,7 +70,6 @@ export class SalesComponent implements OnInit {
             this.expressPromoDatalist = response.data;
           } else {
             this.expressPromoDatalist = [...this.expressPromoDatalist, ...response.data];
-            this.isLoadingExpressPromoDatalist = false;
           }
           this.cdr.detectChanges();
       } else {
@@ -132,7 +126,8 @@ export class SalesComponent implements OnInit {
       "products": [],
       "total": 0,
       "amounts": [],
-      "expressPromos": []
+      "expressPromos": [],
+      "amount": null
     })
     this.updateLocalStorage();
     this.cdr.detectChanges();
@@ -481,7 +476,7 @@ export class SalesComponent implements OnInit {
     sale.total = 0;
     sale.amounts = [];
     sale.expressPromos = [];
-    this.amount = null;
+    sale.amount = null;
     this.updateLocalStorage();
     this.cdr.detectChanges();
   }
@@ -510,19 +505,28 @@ export class SalesComponent implements OnInit {
     this.filteredProducts = [];
     // this.isLoadingDatalist = true;
     if (query.length >= 1) {
-        this.cdr.detectChanges();
+      this.cdr.detectChanges();
       // window.electron.send('search-products', query);
       // window.electron.send('search-promos', query);
 
       this.filteredProducts = this.products.filter(product => {
-        //console.log(product.name.toLowerCase() + " es igual a " + query.toLowerCase());
+        // console.log(product.name.toLowerCase() + " - " + product.brand?.toLowerCase() + " es igual a " + query.toLowerCase());
         //console.log(product.name.toLowerCase().includes(query.toLowerCase()));
 
-        const isMatch = product.name.toLowerCase().includes(query.toLowerCase());
-        //console.log(isMatch);
-        this.cdr.detectChanges();
-        return isMatch;
+        const isMatchName = product.name.toLowerCase().includes(query.toLowerCase());
+        const isMatchBrand =  product.brand?.toLowerCase().includes(query.toLowerCase());
+        // console.log(isMatch);
+        // this.cdr.detectChanges();
+        return isMatchName || isMatchBrand;
       });
+
+      // const filteredProductsByBrand = this.products.filter(product => {
+      //   const isMatchBrand =  product.brand?.toLowerCase().includes(query.toLowerCase());
+      //   return isMatchBrand;
+      // });
+
+      // this.filteredProducts = [...filteredProductsByName, ...filteredProductsByBrand];
+      // this.filteredProducts = [...filteredProductsByName];
 
       const filteredPromos = this.promos.filter(promo => {
         //console.log(promo.name.toLowerCase() + " es igual a " + query.toLowerCase());
@@ -530,18 +534,20 @@ export class SalesComponent implements OnInit {
 
         const isMatch = promo.name.toLowerCase().includes(query.toLowerCase());
         //console.log(isMatch);
-        this.cdr.detectChanges();
+        // this.cdr.detectChanges();
         return isMatch;
       });
 
-      this.filteredProducts = [...this.filteredProducts, ...filteredPromos];
+      // this.filteredProducts = [...this.filteredProducts, ...filteredPromos];
 
-      // console.log("filteredProducts: " + JSON.stringify(this.filteredProducts, null, 2));
+      console.log("filteredProducts: " + JSON.stringify(this.filteredProducts, null, 2));
 
-      this.datalist = this.filteredProducts;
+      // this.datalist = this.filteredProducts;
+
+      this.datalist = [...this.filteredProducts, ...filteredPromos];
 
       this.cdr.detectChanges();
-      //console.log("updated");
+      console.log(JSON.stringify(this.datalist, null, 2));
 
       
       // const searchTerm = query.toLowerCase();
@@ -579,18 +585,18 @@ export class SalesComponent implements OnInit {
   insertAmount(sale: any, item: any, index: number, saleIndex: number) {
     if (item.barcode.length >= 1) {
       sale.amounts.push({
-        amount: this.amount,
+        amount: sale.amount,
         description: item.barcode
       });
   
       const updatedProduct = {
         ...item,
         name: item.barcode,
-        price: this.amount,
+        price: sale.amount,
         id: 99999
       };
   
-      this.amount = null;
+      sale.amount = null;
   
       const indexOf = sale.products.indexOf(item);
       sale.products[indexOf] = updatedProduct;
@@ -659,16 +665,15 @@ export class SalesComponent implements OnInit {
     if (query.length >= 3) {
       // window.electron.send('search-products-for-express-promo', query);
 
-      this.isLoadingExpressPromoDatalist = true;
-
       this.expressPromoDatalist = [];
       this.filteredProducts = [];
       this.cdr.detectChanges();
 
       this.filteredProducts = this.products.filter(product => {
-        const isMatch = product.name.toLowerCase().includes(query.toLowerCase());
+        const isMatchName = product.name.toLowerCase().includes(query.toLowerCase());
+        const isMatchBrand =  product.brand?.toLowerCase().includes(query.toLowerCase());
         this.cdr.detectChanges();
-        return isMatch;
+        return isMatchName || isMatchBrand;
       });
 
       const filteredPromos = this.promos.filter(promo => {
@@ -811,7 +816,7 @@ export class SalesComponent implements OnInit {
   }
 
   onBlur() {
-    console.log("blur")
+    // console.log("blur")
     this.datalist = [];
     this.expressPromoDatalist = [];
     this.filteredProducts = [];
