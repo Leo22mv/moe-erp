@@ -10,9 +10,9 @@
 .list-group {
     margin: 0 15px 0 15px;
 }
-.product-data {
+/* .product-data {
     width: 1890px;
-}
+} */
 a {
     cursor: pointer;
 }
@@ -22,3 +22,9 @@ a {
 .product-list {
     margin-bottom: 15px;
 }
+/* .product-name {
+    width: 500px;
+}
+.product-brand {
+    width: 1890px;
+} */
