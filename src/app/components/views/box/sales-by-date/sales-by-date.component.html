@@ -10,10 +10,10 @@
         </a>
         <div class="collapse" id="collapseExample{{ sale.id }}">
             <ul class="list-group">
-                <li class="list-group-item" *ngFor="let expressPromo of sale.expressPromos">Producto: Promo express | Cantidad: 1 | Precio: {{ expressPromo.total }} | Total: {{ expressPromo.total }}</li>
+                <li class="list-group-item" *ngFor="let expressPromo of sale.expressPromos">Promo express | Total: {{ expressPromo.total }}</li>
                 <li class="list-group-item" *ngFor="let product of sale.products">Producto: {{ product.name }} | Cantidad: {{ product.quantity }} | Precio: ${{ product.price }} | Total: ${{ product.price * product.quantity }}</li>
-                <li class="list-group-item" *ngFor="let promo of sale.promos">Producto: {{ promo.name }} | Cantidad: {{ promo.quantity }} | Precio: ${{ promo.price }} | Total: ${{ promo.price * promo.quantity }}</li>
-                <li class="list-group-item" *ngFor="let amount of sale.amounts">Producto: {{ amount.description }} | Cantidad: 1 | Precio: ${{ amount.amount }} | Total: ${{ amount.amount }}</li>
+                <li class="list-group-item" *ngFor="let promo of sale.promos">Promo: {{ promo.name }} | Cantidad: {{ promo.quantity }} | Precio: ${{ promo.price }} | Total: ${{ promo.price * promo.quantity }}</li>
+                <li class="list-group-item" *ngFor="let amount of sale.amounts">Monto suelto: {{ amount.description }} | | Total: ${{ amount.amount }}</li>
             </ul>
         </div>
     </li>

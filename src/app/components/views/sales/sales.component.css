@@ -43,3 +43,7 @@ h1, .btn-lg {
 .list-group-item-express-promo {
     background-color: #eee;
 }
+datalist {
+    max-height: 250px;
+    overflow-y: auto;
+}

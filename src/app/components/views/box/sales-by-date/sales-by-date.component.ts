@@ -94,6 +94,21 @@ export class SalesByDateComponent {
             });
             sale.amounts = uniqueArray;
             uniqueArray = [];
+
+            sale.expressPromos.forEach((item: any) => {
+              let existent = false;
+
+              uniqueArray.forEach((uniqueItem: any) => {
+                if (JSON.stringify(item) == JSON.stringify(uniqueItem)) {
+                  existent = true;
+                }
+              });
+              
+              if (!existent) {
+                uniqueArray.push(item);
+              }
+            });
+            sale.expressPromos = uniqueArray;
           }
         }
         this.cdr.detectChanges();

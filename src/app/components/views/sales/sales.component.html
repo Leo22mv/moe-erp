@@ -24,10 +24,10 @@
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item" *ngFor="let expressPromoProduct of expressPromo.products; let expressPromoProductIndex = index;">
                                     <div class="form-floating" *ngIf="!expressPromoProduct.name">
-                                        <input (keydown.enter)="onExpressPromoProductEnter(expressPromoProduct, expressPromo, expressPromoProductIndex)" [(ngModel)]="expressPromoProduct.barcode" (input)="updateExpressPromoDatalist(expressPromoProduct.barcode)" [attr.list]="'expressPromoDatalistOptions'" #floatingExpressPromoProduct name="floatingExpressPromoProduct" type="text" class="form-control" id="floatingExpressPromoProduct" placeholder="Código de barras o nombre" [disabled]="expressPromo.confirmed">
+                                        <input (blur)="onBlur()" (keydown.enter)="onExpressPromoProductEnter(expressPromoProduct, expressPromo, expressPromoProductIndex)" [(ngModel)]="expressPromoProduct.barcode" (input)="onExpressPromoSearchChange(expressPromoProduct.barcode)" [attr.list]="'expressPromoDatalistOptions'" #floatingExpressPromoProduct name="floatingExpressPromoProduct" type="text" class="form-control" id="floatingExpressPromoProduct" placeholder="Código de barras o nombre" [disabled]="expressPromo.confirmed">
                                         <label for="floatingExpressPromoProduct">Código de barras o nombre</label>
                                         <datalist id="expressPromoDatalistOptions">
-                                            <option value="Cargando..." *ngIf="isLoadingExpressPromoDatalist">
+                                            <!-- <option value="Cargando..." *ngIf="isLoadingExpressPromoDatalist"> -->
                                             <option *ngFor="let option of expressPromoDatalist; trackBy: trackByProductName" value="{{ option.name }}">
                                         </datalist>
                                     </div>
@@ -57,7 +57,7 @@
                         <li class="list-group-item" *ngFor="let product of sale.products; let productIndex = index; trackBy: trackByProduct">
                             <div class="d-flex justify-content-between align-items-center" *ngIf="!product.id&&!product.promoId">
                                 <div class="form-floating add-by-barcode-or-name">
-                                    <input (input)="onSearchChange(product.barcode)" [attr.list]="'datalistOptions'" #floatingProduct [(ngModel)]="product.barcode" (keydown)="onEnter($event, product, sale, i)" name="floatingProduct" type="text" class="form-control" id="floatingProduct" placeholder="Código de barras o nombre">
+                                    <input (blur)="onBlur()" (input)="onSearchChange(product.barcode)" [attr.list]="'datalistOptions'" #floatingProduct [(ngModel)]="product.barcode" (keydown)="onEnter($event, product, sale, i)" name="floatingProduct" type="text" class="form-control" id="floatingProduct" placeholder="Código de barras o nombre">
                                     <label for="floatingProduct">Código de barras o nombre</label>
                                     <datalist id="datalistOptions">
                                         <option value="Cargando..." *ngIf="isLoadingDatalist">
@@ -67,9 +67,9 @@
                                 <div class="form-floating add-amount">
                                     <div class="input-group">
                                         <div class="input-group-text">$</div>
-                                        <input [(ngModel)]="amount" (keydown.enter)="insertAmount(sale, product, productIndex, i)" #floatingAmount name="floatingAmount" type="number" class="form-control" id="floatingAmount" placeholder="Monto">
+                                        <input [(ngModel)]="amount" (keydown.enter)="insertAmount(sale, product, productIndex, i)" #floatingAmount name="floatingAmount" type="number" class="form-control" id="{{ 'floatingAmount' + productIndex}}" placeholder="Monto">
                                     </div>
-                                    <label class="visually-hidden" for="floatingAmount">Monto</label>
+                                    <label class="visually-hidden" for="{{ 'floatingAmount' + productIndex}}">Monto</label>
                                 </div>
                             </div>
                             <div *ngIf="product.name">
@@ -92,6 +92,30 @@
                     <h3>Total: ${{ sale.total }}</h3>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="amountDescriptionErrorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Error</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            Agregar descripción antes de guardar monto suelto.
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="amountDescriptionErrorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Venta</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            Venta cancelada correctamente.
         </div>
     </div>
 </div>
