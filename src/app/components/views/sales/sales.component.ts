@@ -347,6 +347,9 @@ export class SalesComponent implements OnInit {
       if (sale.products.length > 0) {
         if (!sale.products[sale.products.length - 1].name) {
           sale.products.pop();
+          if (sale.products.length == 0 && sale.expressPromos.length == 0) {
+            return;
+          }
         }
   
         sale.products = sale.products.filter((product: any) => product.id !== 99999);
@@ -434,6 +437,16 @@ export class SalesComponent implements OnInit {
       window.electron.receive('insert-sale-response', (response: any) => {
         if (response) {
             console.log(response);
+            const toastLiveExample = document.getElementById('insertedSaleToast');
+
+            if (toastLiveExample) {
+              const toast = new (window as any).bootstrap.Toast(toastLiveExample, {
+                delay: 10000
+              });
+              toast.show();
+            }
+
+            this.cdr.detectChanges();
         } else {
             console.error('Error al obtener productos:', response.error);
         }
@@ -452,6 +465,19 @@ export class SalesComponent implements OnInit {
     sale.expressPromos = [];
     this.amount = null;
     this.updateLocalStorage();
+    this.cdr.detectChanges();
+  }
+
+  showCancelledSaleToast() {
+    const toastLiveExample = document.getElementById('cancelledSaleToast');
+
+    if (toastLiveExample) {
+      const toast = new (window as any).bootstrap.Toast(toastLiveExample, {
+        delay: 10000
+      });
+      toast.show();
+    }
+
     this.cdr.detectChanges();
   }
 
