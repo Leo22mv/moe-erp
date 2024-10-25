@@ -344,14 +344,32 @@ export class SalesComponent implements OnInit {
   
   insertSale(sale: any) {
     if (sale.expressPromos.length >= 1 || sale.products.length >= 1) {
+      for (let expressPromo of sale.expressPromos) {
+        if (!expressPromo.confirmed) {
+          const toastLiveExample = document.getElementById('unconfirmedExpressPromoToast');
+
+          if (toastLiveExample) {
+              const toast = new (window as any).bootstrap.Toast(toastLiveExample, {
+                  delay: 5000
+              });
+              toast.show();
+          }
+
+          this.cdr.detectChanges();
+
+          return;
+        }
+      }
+      
       if (sale.products.length > 0) {
         if (!sale.products[sale.products.length - 1].name) {
           sale.products.pop();
           if (sale.products.length == 0 && sale.expressPromos.length == 0) {
+            this.cdr.detectChanges();
             return;
           }
         }
-  
+
         sale.products = sale.products.filter((product: any) => product.id !== 99999);
       }
 
@@ -441,7 +459,7 @@ export class SalesComponent implements OnInit {
 
             if (toastLiveExample) {
               const toast = new (window as any).bootstrap.Toast(toastLiveExample, {
-                delay: 10000
+                delay: 5000
               });
               toast.show();
             }
@@ -473,7 +491,7 @@ export class SalesComponent implements OnInit {
 
     if (toastLiveExample) {
       const toast = new (window as any).bootstrap.Toast(toastLiveExample, {
-        delay: 10000
+        delay: 5000
       });
       toast.show();
     }
@@ -588,7 +606,7 @@ export class SalesComponent implements OnInit {
 
       if (toastLiveExample) {
         const toast = new (window as any).bootstrap.Toast(toastLiveExample, {
-          delay: 10000
+          delay: 5000
         });
         toast.show();
       }
