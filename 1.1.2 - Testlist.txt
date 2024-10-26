@@ -1,0 +1,53 @@
+1- 1.1- Test unitario (productos): Al agregar productos, se guardan correctamente en la base de datos.
+2- 1.2- Test unitario (productos): Al consultar la lista de productos, se muestran correctamente los productos con sus respectivos datos.
+3- 1.3- Test unitario (productos): Al modificar un producto, se modifica correctamente en la base de datos, sin afectar a los demás.
+4- 1.4- Test unitario (productos): Al eliminar un producto, se elimina correctamente de la base de datos.
+
+5- 2.1- Test unitario (promos): Al agregar productos a una promo, se agregan correctamente.
+6- 2.2- Test unitario (promos): Al eliminar productos a una promo, se eliminan correctamente.
+7- 2.3- Test unitario (promos): Al agregar promos, se guardan correctamente en la base de datos.
+8- 2.4- Test unitario (promos): Al consultar la lista de promos, se muestran correctamente las promos con sus respectivos datos.
+9- 2.5- Test unitario (promos): Al eliminar una promo, se elimina correctamente de la base de datos, sin afectar a las demás.
+
+10- 3.1- Test unitario (ventas (productos)): Al agregar producto a venta escaneando código de barras, se agrega correctamente y se recalcula el total.
+11- 3.2- Test unitario (ventas (productos)): Al buscar productos por nombre, se muestran correctamente las opciones que coinciden con la búsqueda (por optimización, la búsqueda se ejecuta a partir de los 3 caracteres).
+12- 3.3- Test unitario (ventas (productos)): Al agregar producto a venta buscando por nombre, se agrega correctamente y se recalcula el total (para productos sin codigo de barras).
+13- 3.4- Test unitario (ventas (productos)): Al cambiar la cantidad de un producto en una venta, se recalcula el total de la venta correctamente.
+14- 3.5- Test unitario (ventas (productos)): Al eliminar productos de una venta, se eliminan correctamente y se recalcula el total.
+
+15- 3.6- Test unitario (ventas (promos)): Al buscar promos por nombre, se muestran correctamente las opciones que coinciden con la búsqueda (por optimización, la búsqueda se ejecuta a partir de los 3 caracteres).
+16- 3.7- Test unitario (ventas (promos)): Al agregar promo a venta buscando por nombre, se agrega correctamente y se recalcula el total.
+18- 3.8- Test unitario (ventas (promos)): Al cambiar la cantidad de una promo en una venta, se recalcula el total de la venta correctamente.
+19- 3.9- Test unitario (ventas (promos)): Al eliminar promos de una venta, se eliminan correctamente y se recalcula el total.
+
+20- 3.10- Test unitario (ventas (montos sueltos)): Al agregar montos sueltos a las ventas, con su respectiva descripción, se agregan correctamente y se recalcula el total (para productos no cargados en la base de datos, por ej. fiambre o caramelos).
+21- 3.11- Test unitario (ventas (montos sueltos)): Al eliminar montos sueltos de una venta, se eliminan correctamente y se recalcula el total.
+
+22- 3.12- Test unitario (ventas (promos express)): Al agregar una promo express a venta, se agrega correctamente (promos de un solo uso; por ej. hacerle precio a un cliente recurrente en un producto en particular).
+23- 3.13- Test unitario (ventas (promos express)): Al agregar un producto a una promos express por código de barras, se agrega correctamente.
+24- 3.14- Test unitario (ventas (promos express)): Al buscar productos por nombre en el buscador de promo express, se muestran correctamente las opciones que coinciden con la búsqueda (por optimización, la búsqueda se ejecuta a partir de los 3 caracteres).
+25- 3.15- Test unitario (ventas (promos express)): Al agregar productos a promos express buscando por nombre, se agregan correctamente (para productos sin código de barras).
+26- 3.16- Test unitario (ventas (promos express)): Al cambiar cantidad de un producto en una promo express, se cambia correctamente.
+27- 3.17- Test unitario (ventas (promos express)): Al confirmar promo express, se confirma bien y se recalcula el total.
+28- 3.18- Test unitario (ventas (promos express)): Al eliminar productos de una promo express, se eliminan correctamente.
+29- 3.19- Test unitario (ventas (promos express)): Al eliminar promos express de una venta, se eliminan correctamente y se recalcula el total.
+
+30- 3.20- Test unitario (ventas): Al agregar una venta, se agrega correctamente sin afectar a las demás.
+31- 3.21- Test unitario (ventas): Al eliminar una venta, se elimina correctamente sin afectar a las demás.
+32- 3.22- Test unitario (ventas): Al cancelar una venta, se eliminan todos los productos, promos, montos sueltos, y promos express, y el total vuelve a 0.
+33- 3.23- Test unitario (ventas): Al guardar una venta, se guarda correctamente en la base de datos, sin afectar a las demás.
+34- 3.24- Test unitario (ventas): Al guardar una venta, se registra exitosamente la fecha y hora de la venta.
+35- 3.25- Test unitario (ventas): Al guardar una venta, se registran exitosamente los productos en el detalle de la venta.
+36- 3.26- Test unitario (ventas): Al guardar una venta, se registran exitosamente las promos en el detalle de la venta.
+37- 3.27- Test unitario (ventas): Al guardar una venta, se registran exitosamente las promos express en el detalle de la venta.
+38- 3.28- Test unitario (ventas): Al guardar una venta, se registran exitosamente los montos sueltos en el detalle de la venta.
+
+39- 4.1- Test de integración (ventas-productos): Al guardar una venta, se resta el stock de los productos agregados a la venta, con su respectiva cantidad.
+40- 4.2- Test de integración (ventas-productos): Al guardar una venta, se resta el stock de los productos de las promos agregadas a la venta, con su respectiva cantidad de promos y productos por promo.
+41- 4.3- Test de integración (ventas-productos): Al guardar una venta, se resta el stock de los productos de las promos express agregadas a la venta, con su respectiva cantidad.
+
+42- 5.1- Test unitario (caja): Se puede consultar todas las ventas de una fecha particular
+43- 5.2- Test unitario (caja): Al obtener todas las ventas de una fecha, se obtienen correctamente sus respectivos detalles y totales.
+44- 5.3- Test unitario (caja): Se calcula la caja sumando los totales de todas las ventas de esa fecha.
+
+45- 6.1- Test e2e: Prueba del flujo de uso completo de la aplicación, de principio a fin, simulando comportamiento de usuario real.
