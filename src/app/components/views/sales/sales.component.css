@@ -47,3 +47,6 @@ datalist {
     max-height: 250px;
     overflow-y: auto;
 }
+.spinner-border {
+    margin: 15px;
+}
