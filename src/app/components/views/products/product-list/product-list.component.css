@@ -1,5 +1,5 @@
 .spinner-border {
-    margin: 15px 0 0 15px;
+    margin: 15px 0 15px 15px;
 }
 .alert {
     margin: 15px;
@@ -28,3 +28,6 @@ a {
 .product-brand {
     width: 1890px;
 } */
+.dropdown-toggle {
+    margin: 0 0 15px 15px;
+ }

@@ -145,4 +145,12 @@ export class ProductListComponent {
       });
     }
   }
+
+  orderBySellPriceAsc() {
+    this.filteredProducts = this.filteredProducts.sort((a, b) => a.sellPrice - b.sellPrice);
+  }
+
+  orderByStockAsc() {
+    this.filteredProducts = this.filteredProducts.sort((a, b) => a.stock - b.stock);
+  }
 }
