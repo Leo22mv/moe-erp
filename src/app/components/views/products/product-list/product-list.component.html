@@ -22,10 +22,10 @@
 <div *ngIf="!loading" class="product-list">
     <ul class="list-group list-group-horizontal" *ngFor="let product of filteredProducts">
         <li class="list-group-item text-nowrap flex-grow-1 {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }} product-name">Nombre: <strong>{{ product.name }}</strong></li>
-        <li class="list-group-item text-nowrap flex-shrink-0 {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }} product-brand" style="min-width: 250px;">Marca: <strong>{{ product.brand ? product.brand : "Sin marca" }}</strong></li>
-        <li class="list-group-item text-nowrap flex-shrink-0 {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}" style="min-width: 205px;">Precio de costo: <strong>${{ product.price }}</strong></li>
-        <li class="list-group-item text-nowrap flex-shrink-0 {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}" style="min-width: 205px;">Precio de venta: <strong>${{ product.sellPrice }}</strong></li>
-        <li class="list-group-item text-nowrap flex-shrink-0 {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}" style="min-width: 110px;">Stock: <strong>{{ product.stock }}</strong></li>
+        <li class="list-group-item text-nowrap flex-shrink-0 {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }} product-brand" style="min-width: 300px;">Marca: <strong>{{ product.brand ? product.brand : "Sin marca" }}</strong></li>
+        <li class="list-group-item text-nowrap flex-shrink-0 {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}" style="min-width: 300px;">Precio de costo: <strong>${{ product.price }}</strong></li>
+        <li class="list-group-item text-nowrap flex-shrink-0 {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}" style="min-width: 300px;">Precio de venta: <strong>${{ product.sellPrice }}</strong></li>
+        <li class="list-group-item text-nowrap flex-shrink-0 {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}" style="min-width: 200px;">Stock: <strong>{{ product.stock }}</strong></li>
         <a class="list-group-item list-group-item-primary list-group-item-action" data-bs-toggle="modal" data-bs-target="#updateModal" (click)="updateFormWithProduct(product.id, product.name, product.price, product.sellPrice, product.stock, product.barcode, product.brand, product.stock_limit); updateIdForDelete(product.id)">MODIFICAR</a>
         <a class="list-group-item list-group-item-danger list-group-item-action" data-bs-toggle="modal" data-bs-target="#deleteModal" (click)="updateIdForDelete(product.id)">ELIMINAR</a>
     </ul>
