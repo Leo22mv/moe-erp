@@ -5,7 +5,7 @@
     margin: 15px;
 }
 .list-group {
-    margin: 15px 15px 0 15px;
+    margin: 0 15px 0 15px;
 }
 .product-data {
     /* width: 1890px; */
@@ -15,4 +15,16 @@ a {
 }
 .list-group-item-action {
     width: min-content;
+}
+.list-group-horizontal:first-child {
+    margin-top: 15px;
+}
+#updateModal .mb-15 {
+    margin-bottom: 15px;
+}
+.add-product-to-promo-btn {
+    margin-bottom: 15px;
+}
+.delete-product-btn {
+    margin-left: 15px;
 }

@@ -23,7 +23,8 @@ const { createTable,
         getProductsByPromo,
         createExpressPromosTable,
         insertExpressPromo,
-        getExpressPromosBySaleId
+        getExpressPromosBySaleId,
+        updatePromo
       } = require('./db/db');
 const { ipcMain } = require('electron');
 
@@ -244,8 +245,20 @@ ipcMain.on('insert-express-promo', (event, saleId, total) => {
       console.error('Error al registrar promo express:', err.message);
       event.reply('add-promo-response', 'Error al registrar la promo');
     } else {
-      console.log('Promo express agregada correctamente')
+      console.log('Promo express agregada correctamente');
       event.reply('add-promo-response', 'Promo agregada correctamente');
+    }
+  });
+});
+
+ipcMain.on('update-promo', (event, promo) => {
+  updatePromo(promo, (err) => {
+    if (err) {
+        console.error('Error al modificar promo:', err.message);
+        event.reply('update-promo-response', 'Error al modificar la promo');
+    } else {
+        console.log('Promo modificada correctamente');
+        event.reply('update-promo-response', 'Promo agregada correctamente');
     }
   });
 });

@@ -812,6 +812,36 @@ function getExpressPromosBySaleId(saleId, callback) {
     });
 }
 
+function updatePromo(promo, callback) {
+    const promoQuery = `UPDATE promos SET name = ?, price = ? WHERE id = ?`;
+    
+    db.run(promoQuery, [promo.name, promo.price, promo.id], function(err) {
+        if (err) {
+            console.error('Error al actualizar la promoción:', err.message);
+            callback(err);
+        } else {
+            const deleteQuery = `DELETE FROM promo_products WHERE promo_id = ?`;
+            db.run(deleteQuery, [promo.id], function(err) {
+                if (err) {
+                    console.error('Error al eliminar productos de la promoción:', err.message);
+                    callback(err);
+                } else {
+                    const productQuery = `INSERT INTO promo_products (promo_id, product_id, quantity) VALUES (?, ?, ?)`;
+                    promo.products.forEach((product) => {
+                        db.run(productQuery, [promo.id, product.id, product.quantity], (err) => {
+                            if (err) {
+                                console.error('Error al agregar producto a la promoción:', err.message);
+                            }
+                        });
+                    });
+                    
+                    callback(null, promo.id);
+                }
+            });
+        }
+    });
+}
+
 module.exports = {
     createTable,
     insertProduct,
@@ -837,5 +867,6 @@ module.exports = {
     getProductsByPromo,
     createExpressPromosTable,
     insertExpressPromo,
-    getExpressPromosBySaleId
+    getExpressPromosBySaleId,
+    updatePromo
 };

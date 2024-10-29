@@ -22,6 +22,9 @@ export class AddPromoComponent {
   emptyFieldsError: boolean = false;
   datalist: any[] = [];
   isLoadingDatalist: boolean = false;
+  products: any = [];
+  loading: boolean = true;
+  filteredProducts: any = [];
 
   constructor(private cdr: ChangeDetectorRef) { }
 
@@ -89,6 +92,18 @@ export class AddPromoComponent {
           console.error('Error al agregar promo:', response.error);
       }
     });
+
+    window.electron.send('get-products');
+
+    window.electron.receive('get-products-response', (response: any) => {
+      if (response.success) {
+        this.products = response.data;
+        this.loading = false;
+        this.cdr.detectChanges();
+      } else {
+        console.error('Error al obtener productos:', response.error);
+      }
+    });
   }
 
   addProduct(): void {
@@ -147,8 +162,11 @@ export class AddPromoComponent {
     // console.log(JSON.stringify(this.form.products, null, 2));
     this.datalist = [];
     this.isLoadingDatalist = true;
-    if (query.length >= 1) {
-      window.electron.send('search-products', query);
+    if (query.length >= 3) {
+      // window.electron.send('search-products', query);
+      this.filteredProducts = this.products.filter((product: any) => product.name.toLowerCase().includes(query.toLowerCase()));
+      this.datalist = [...this.filteredProducts];
+      this.cdr.detectChanges();
     }
   }
 

@@ -2,8 +2,8 @@
     <span class="visually-hidden">Loading...</span>
 </div>
 
-<ul class="list-group list-group-horizontal" *ngFor="let promo of promos">
-    <li class="list-group-item product-data list-group-item-secondary">
+<ul class="list-group list-group-horizontal" *ngFor="let promo of promos; let promoIndex = index;">
+    <li class="list-group-item product-data list-group-item-secondary flex-grow-1">
         Nombre: <strong>{{ promo.name }}</strong> | Precio: $<strong>{{ promo.price }}</strong>
         <ul class="list-group">
             <li class="list-group-item" *ngFor="let product of promo.products">
@@ -11,7 +11,8 @@
             </li>
         </ul>
     </li>
-    <a class="list-group-item list-group-item-danger list-group-item-action" data-bs-toggle="modal" data-bs-target="#deleteModal" (click)="updateIdForDelete(promo.id)">ELIMINAR</a>
+    <a class="list-group-item list-group-item-primary list-group-item-action d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#updateModal" (click)="updateIdForDelete(promo.id);updateFormWithPromo(promo);updatePromoIndex(promoIndex)">MODIFICAR</a>
+    <a class="list-group-item list-group-item-danger list-group-item-action d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#deleteModal" (click)="updateIdForDelete(promo.id)">ELIMINAR</a>
 </ul>
 
 <div class="alert alert-secondary" role="alert" *ngIf="empty">
@@ -31,6 +32,58 @@
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Conservar</button>
             <button type="button" class="btn btn-danger" data-bs-dismiss="modal" (click)="deletePromo()">Eliminar</button>
+        </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="updateModalLabel">Modificar promo</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="addPromoForm">
+                <div class="form-floating">
+                    <input [(ngModel)]="form.name" name="floatingName" type="text" class="form-control mb-15" id="floatingName" placeholder="Nombre" required>
+                    <label for="floatingInput">*Nombre</label>
+                </div>
+                <div class="form-floating">
+                    <input [(ngModel)]="form.price" name="floatingPrice" type="number" class="form-control mb-15" id="floatingPrice" placeholder="Precio" required>
+                    <label for="floatingPrice">*Precio</label>
+                </div>
+                <button (click)="addProduct()" type="button" class="btn btn-dark add-product-to-promo-btn">Agregar producto</button>
+                <ul class="list-group">
+                    <li class="list-group-item" *ngFor="let product of form.products; let i = index;">
+                        <div *ngIf="!product.id" class="form-floating">
+                            <input (input)="onSearchChange(form.products[i].name)" (keydown)="onEnter($event, product, i)" list="datalistOptions" (input)="updateDatalist(product.name)" name="floatingSearchProduct{{i}}" [(ngModel)]="form.products[i].name" type="text" class="form-control" id="floatingSearchProduct" placeholder="Buscar por nombre...">
+                            <label for="floatingSearchProduct">Buscar por nombre...</label>
+                            <datalist id="datalistOptions">
+                                <option *ngFor="let option of datalist; trackBy: trackById" value="{{ option.name }}">{{ option.brand }}</option>
+                            </datalist>
+                        </div>
+                        <div *ngIf="product.id">
+                            <div class="form-floating">
+                                <input name="floatingProductName{{i}}" [(ngModel)]="product.name" type="text" class="form-control mb-15" id="floatingProductName" placeholder="Nombre" disabled>
+                                <label for="floatingProductName">Nombre</label>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="form-floating">
+                                    <input name="floatingProductQty{{i}}" [(ngModel)]="product.quantity" type="number" class="form-control" id="floatingProductQty" placeholder="Cantidad" min="1">
+                                    <label for="floatingProductQty">Cantidad</label>
+                                </div>
+                                <button (click)="deleteProduct(i)" type="button" class="btn-close delete-product-btn" aria-label="Delete product from promo"></button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" (click)="savePromo()">Guardar</button>
         </div>
         </div>
     </div>

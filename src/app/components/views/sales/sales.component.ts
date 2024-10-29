@@ -96,13 +96,13 @@ export class SalesComponent implements OnInit {
     });
 
     this.searchSubject
-      .pipe(debounceTime(500))
+      // .pipe(debounceTime(500))
       .subscribe(term => {
         this.updateDatalist(term);
       });
 
     this.expressPromoSearchSubject
-      .pipe(debounceTime(500))
+      // .pipe(debounceTime(500))
       .subscribe(term => {
         this.updateExpressPromoDatalist(term);
       });
