@@ -11,11 +11,14 @@
 ### 1.1.1
 
 - Nuevo sistema de búsqueda por nombre al agregar productos o promos en ventas.
+- Notificaciones al guardar o cancelar una venta.
+- Manejo de errores de venta a través de notificaciones.
 
 ### 1.1.0
 
 - Crear promos express en ventas.
 - Crear montos sueltos en ventas.
+- Mejoras visuales a sección de lista de productos.
 
 ### 1.0.0
 
@@ -24,4 +27,4 @@
 - Agregar productos en ventas, por código de barras o buscando por nombre.
 - Agregar promos en ventas.
 - Crear y leer ventas.
-- Obtener ventas de una fecha específica, y calcular caja sumando los totales de todas las ventas.
+- Obtener ventas de una fecha específica, con su respectivo detalle, y calcular caja sumando los totales de todas las ventas.
