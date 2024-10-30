@@ -10,8 +10,10 @@ import { SalesByDateComponent } from './components/views/box/sales-by-date/sales
 import { PromosComponent } from './components/views/promos/promos.component';
 import { PromosListComponent } from './components/views/promos/promos-list/promos-list.component';
 import { AddPromoComponent } from './components/views/promos/add-promo/add-promo.component';
+import { VersionsComponent } from './components/views/versions/versions.component';
 
 export const routes: Routes = [
+    { path: "versions", component: VersionsComponent },
     { path: "promos", component: PromosComponent, children: [
         { path: "list", component: PromosListComponent },
         { path: "add", component: AddPromoComponent },
