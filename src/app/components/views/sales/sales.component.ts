@@ -841,13 +841,35 @@ export class SalesComponent implements OnInit {
 
   openBox() {
     window.electron.send('insert-box');
+
+    const toastLiveExample = document.getElementById('openedBoxToast');
+
+    if (toastLiveExample) {
+      const toast = new (window as any).bootstrap.Toast(toastLiveExample, {
+        delay: 5000
+      });
+      toast.show();
+    }
+
+    this.cdr.detectChanges();
   }
 
   closeBox() {
     localStorage.removeItem('openedBox');
     localStorage.setItem('sales', '[]');
+
     this.sales = [];
     this.boxOpened = false;
+
+    const toastLiveExample = document.getElementById('closedBoxToast');
+
+    if (toastLiveExample) {
+      const toast = new (window as any).bootstrap.Toast(toastLiveExample, {
+        delay: 5000
+      });
+      toast.show();
+    }
+
     this.cdr.detectChanges();
   }
 }
