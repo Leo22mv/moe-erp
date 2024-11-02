@@ -144,6 +144,7 @@ function insertSale(sale, callback) {
             const insertSalePromosQuery = `INSERT INTO sale_promos (sale_id, promo_id, quantity) VALUES (?, ?, ?)`;
             const insertSaleAmountsQuery = `INSERT INTO sale_amounts (sale_id, amount, description) VALUES (?, ?, ?)`;
             const insertExpressPromosQuery = `INSERT INTO express_promos (sale_id, total) VALUES (?, ?)`;
+            const updateBoxTotals = `UPDATE boxes SET box_total = box_total + ?, box_net_total = box_net_total + ? WHERE box_id = ?`;
 
             db.serialize(() => {
                 db.run('BEGIN TRANSACTION');
@@ -229,6 +230,14 @@ function insertSale(sale, callback) {
                         });
                     });
                 }
+
+                db.run(updateBoxTotals, [sale.total, sale.total, boxId], (err) => {
+                    if (err) {
+                      console.error(err.message);
+                    } else {
+                      console.log(`Totales de caja ${boxId} actualizados correctamente`);
+                    }
+                });                  
 
                 db.run('COMMIT', (err) => {
                     if (err) {
@@ -810,6 +819,124 @@ function insertBox(callback) {
     });
 }
 
+function getSalesByBoxId(boxId, callback) {
+    const query = `
+        SELECT 
+            sales.id AS sale_id, 
+            sales.date AS sale_date, 
+            sales.total AS sale_total,
+
+            products.id AS product_id,
+            products.name AS product_name,
+            products.sellPrice AS product_price,
+            sale_products.quantity AS product_quantity,
+
+            promos.id AS promo_id,
+            promos.name AS promo_name,
+            promos.price AS promo_price,
+            sale_promos.quantity AS promo_quantity,
+
+            sale_amounts.amount AS extra_amount,
+            sale_amounts.description AS extra_description,
+
+            express_promos.express_promo_id AS express_promo_id,
+            express_promos.total AS express_promo_total
+
+        FROM 
+            sales
+        LEFT JOIN 
+            sale_products ON sales.id = sale_products.sale_id
+        LEFT JOIN 
+            products ON sale_products.product_id = products.id
+
+        LEFT JOIN 
+            sale_promos ON sales.id = sale_promos.sale_id
+        LEFT JOIN 
+            promos ON sale_promos.promo_id = promos.id
+
+        LEFT JOIN 
+            sale_amounts ON sales.id = sale_amounts.sale_id
+
+        LEFT JOIN 
+            express_promos ON sales.id = express_promos.sale_id
+
+        WHERE 
+            sales.box_id = ?
+        ORDER BY 
+            sales.id, products.id, promos.id
+    `;
+
+    db.all(query, [boxId], (err, rows) => {
+        if (err) {
+            console.error('Error al obtener ventas con detalles por caja:', err.message);
+            callback(err, null);
+        } else {
+            const sales = {};
+
+            rows.forEach(row => {
+                if (!sales[row.sale_id]) {
+                    sales[row.sale_id] = {
+                        id: row.sale_id,
+                        date: row.sale_date,
+                        total: row.sale_total,
+                        products: [],
+                        promos: [],
+                        amounts: [],
+                        expressPromos: []
+                    };
+                }
+
+                if (row.product_id) {
+                    sales[row.sale_id].products.push({
+                        id: row.product_id,
+                        name: row.product_name,
+                        price: row.product_price,
+                        quantity: row.product_quantity
+                    });
+                }
+
+                if (row.promo_id) {
+                    sales[row.sale_id].promos.push({
+                        id: row.promo_id,
+                        name: row.promo_name,
+                        price: row.promo_price,
+                        quantity: row.promo_quantity
+                    });
+                }
+
+                if (row.extra_amount !== null) {
+                    sales[row.sale_id].amounts.push({
+                        amount: row.extra_amount,
+                        description: row.extra_description
+                    });
+                }
+
+                if (row.express_promo_id) {
+                    sales[row.sale_id].expressPromos.push({
+                        id: row.express_promo_id,
+                        total: row.express_promo_total
+                    });
+                }
+            });
+
+            const salesArray = Object.values(sales);
+            callback(null, salesArray);
+        }
+    });
+}
+
+function getBoxesByDate(date, callback) {
+    const query = `SELECT * FROM boxes WHERE box_date = ?`;
+    db.all(query, [date], (err, rows) => {
+        if (err) {
+            console.error('Error al obtener cajas por fecha:', err.message);
+            callback(err, null);
+        } else {
+            callback(null, rows);
+        }
+    });
+}
+
 module.exports = {
     createTable,
     insertProduct,
@@ -839,5 +966,7 @@ module.exports = {
     updatePromo,
     createBoxesTable,
     createExpensesTable,
-    insertBox
+    insertBox,
+    getSalesByBoxId,
+    getBoxesByDate
 };

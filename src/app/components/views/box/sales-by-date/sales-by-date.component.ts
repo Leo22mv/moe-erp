@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    FormsModule
   ],
   templateUrl: './sales-by-date.component.html',
   styleUrl: './sales-by-date.component.css'

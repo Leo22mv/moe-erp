@@ -27,7 +27,9 @@ const { createTable,
         updatePromo,
         createBoxesTable,
         createExpensesTable,
-        insertBox
+        insertBox,
+        getSalesByBoxId,
+        getBoxesByDate
       } = require('./db/db');
 const { ipcMain } = require('electron');
 
@@ -276,6 +278,26 @@ ipcMain.on('insert-box', (event) => {
     } else {
       console.log('Caja abierta correctamente');
       event.reply('insert-box-response', { success: true });
+    }
+  });
+});
+
+ipcMain.on('get-sales-by-box', (event, boxId) => {
+  getSalesByBoxId(boxId, (err, sales) => {
+    if (err) {
+      event.reply('get-sales-by-box-response', { success: false, error: 'Error al obtener ventas por caja: ' + err.message });
+    } else {
+      event.reply('get-sales-by-box-response', { success: true, data: sales });
+    }
+  });
+});
+
+ipcMain.on('get-boxes-by-date', (event, date) => {
+  getBoxesByDate(date, (err, sales) => {
+    if (err) {
+      event.reply('get-boxes-by-date-response', { success: false, error: 'Error al obtener cajas por fecha: ' + err.message });
+    } else {
+      event.reply('get-boxes-by-date-response', { success: true, data: sales });
     }
   });
 });
