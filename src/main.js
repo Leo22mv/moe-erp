@@ -24,7 +24,10 @@ const { createTable,
         createExpressPromosTable,
         insertExpressPromo,
         getExpressPromosBySaleId,
-        updatePromo
+        updatePromo,
+        createBoxesTable,
+        createExpensesTable,
+        insertBox
       } = require('./db/db');
 const { ipcMain } = require('electron');
 
@@ -52,6 +55,8 @@ app.whenReady().then(() => {
   createSaleAmountsTable();
   createSalePromosTable();
   createExpressPromosTable();
+  createBoxesTable();
+  createExpensesTable();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -243,10 +248,10 @@ ipcMain.on('insert-express-promo', (event, saleId, total) => {
   insertExpressPromo(saleId, total, (err) => {
     if (err) {
       console.error('Error al registrar promo express:', err.message);
-      event.reply('add-promo-response', 'Error al registrar la promo');
+      event.reply('insert-express-promo-response', 'Error al registrar la promo');
     } else {
       console.log('Promo express agregada correctamente');
-      event.reply('add-promo-response', 'Promo agregada correctamente');
+      event.reply('insert-express-promo-response', 'Promo agregada correctamente');
     }
   });
 });
@@ -255,10 +260,22 @@ ipcMain.on('update-promo', (event, promo) => {
   updatePromo(promo, (err) => {
     if (err) {
         console.error('Error al modificar promo:', err.message);
-        event.reply('update-promo-response', 'Error al modificar la promo');
+        event.reply('update-promo-response', { success: false, error: 'Error al modificar la promo: ' + err.message });
     } else {
         console.log('Promo modificada correctamente');
-        event.reply('update-promo-response', 'Promo agregada correctamente');
+        event.reply('update-promo-response', { success: true });
+    }
+  });
+});
+
+ipcMain.on('insert-box', (event) => {
+  insertBox((err) => {
+    if (err) {
+      console.error('Error al abrir caja:', err.message);
+      event.reply('insert-box-response', { success: false, error: 'Error al abrir caja: ' + err.message });
+    } else {
+      console.log('Caja abierta correctamente');
+      event.reply('insert-box-response', { success: true });
     }
   });
 });

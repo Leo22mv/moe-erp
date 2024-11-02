@@ -81,8 +81,10 @@ function deleteProduct(id) {
 function createSalesTable() {
     db.run(`CREATE TABLE IF NOT EXISTS sales (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        box_id INTEGER NOT NULL,
         date TEXT NOT NULL,
-        total REAL NOT NULL
+        total REAL NOT NULL,
+        FOREIGN KEY (box_id) REFERENCES boxes(box_id)
     )`, (err) => {
         if (err) {
             console.error('Error al crear la tabla de ventas:', err.message);
@@ -109,161 +111,93 @@ function createSaleProductsTable() {
     });
 }
 
-// function insertSale(sale, callback) {
-//     const date = new Date().toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' });
-//     const insertSaleQuery = `INSERT INTO sales (date, total) VALUES (?, ?)`;
-
-//     db.run(insertSaleQuery, [date, sale.total], function (err) {
-//         if (err) {
-//             console.error('Error al insertar venta:', err.message);
-//             callback(err);
-//             return;
-//         }
-
-//         const saleId = this.lastID;
-
-//         const insertSaleProductsQuery = `INSERT INTO sale_products (sale_id, product_id, quantity) VALUES (?, ?, ?)`;
-
-//         db.serialize(() => {
-//             db.run('BEGIN TRANSACTION');
-
-//             sale.products.forEach(product => {
-//                 const checkPromoQuery = `SELECT * FROM promos WHERE name = ?`;
-
-//                 db.get(checkPromoQuery, [product.name], (err, promoRow) => {
-//                     if (err) {
-//                         console.error('Error al buscar promoción:', err.message);
-//                         db.run('ROLLBACK');
-//                         callback(err);
-//                         return;
-//                     }
-
-//                     if (promoRow) {
-//                         const getPromoProductsQuery = `SELECT * FROM promo_products WHERE promo_id = ?`;
-//                         db.all(getPromoProductsQuery, [promoRow.id], (err, promoProducts) => {
-//                             if (err) {
-//                                 console.error('Error al obtener productos de la promoción:', err.message);
-//                                 db.run('ROLLBACK');
-//                                 callback(err);
-//                                 return;
-//                             }
-
-//                             promoProducts.forEach(promoProduct => {
-//                                 const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
-//                                 const promoQuantity = promoProduct.quantity * product.quantity;
-                                
-//                                 db.run(insertSaleProductsQuery, [saleId, promoProduct.product_id, promoQuantity], (err) => {
-//                                     if (err) {
-//                                         console.error('Error al insertar producto promocional en la venta:', err.message);
-//                                         db.run('ROLLBACK');
-//                                         callback(err);
-//                                         return;
-//                                     }
-
-//                                     db.run(updateStockQuery, [promoQuantity, promoProduct.product_id], (err) => {
-//                                         if (err) {
-//                                             console.error('Error al actualizar stock de la promo:', err.message);
-//                                             db.run('ROLLBACK');
-//                                             callback(err);
-//                                             return;
-//                                         }
-//                                     });
-//                                 });
-//                             });
-//                         });
-//                     } else {
-//                         db.run(insertSaleProductsQuery, [saleId, product.id, product.quantity], (err) => {
-//                             if (err) {
-//                                 console.error('Error al insertar producto en la venta:', err.message);
-//                                 db.run('ROLLBACK');
-//                                 callback(err);
-//                                 return;
-//                             }
-
-//                             const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
-//                             db.run(updateStockQuery, [product.quantity, product.id], (err) => {
-//                                 if (err) {
-//                                     console.error('Error al actualizar stock:', err.message);
-//                                     db.run('ROLLBACK');
-//                                     callback(err);
-//                                     return;
-//                                 }
-//                             });
-//                         });
-//                     }
-//                 });
-//             });
-
-//             db.run('COMMIT', (err) => {
-//                 if (err) {
-//                     console.error('Error al confirmar transacción:', err.message);
-//                     callback(err);
-//                 } else {
-//                     console.log(`Venta ${saleId} registrada con éxito`);
-//                     callback(null);
-//                 }
-//             });
-//         });
-//     });
-// }
-
 function insertSale(sale, callback) {
-    // console.log(JSON.stringify(sale, null, 2));
-    const date = moment().tz('America/Argentina/Buenos_Aires').format('YYYY-MM-DD HH:mm:ss');
-    const insertSaleQuery = `INSERT INTO sales (date, total) VALUES (?, ?)`;
-    
-    db.run(insertSaleQuery, [date, sale.total], function(err) {
+    const getMaxBoxIdQuery = `SELECT MAX(box_id) as maxBoxId FROM boxes`;
+
+    db.get(getMaxBoxIdQuery, (err, row) => {
         if (err) {
-            console.error('Error al insertar venta:', err.message);
+            console.error('Error al obtener el box_id más alto:', err.message);
             callback(err);
             return;
         }
 
-        const saleId = this.lastID;
+        const boxId = row ? row.maxBoxId : null;
+        if (boxId === null) {
+            console.error('No se encontró ningún box_id');
+            callback(new Error('No se encontró ningún box_id'));
+            return;
+        }
+    
+        const date = moment().tz('America/Argentina/Buenos_Aires').format('DD/MM/YYYY HH:mm:ss');
+        const insertSaleQuery = `INSERT INTO sales (date, total, box_id) VALUES (?, ?, ?)`;
+        
+        db.run(insertSaleQuery, [date, sale.total, boxId], function(err) {
+            if (err) {
+                console.error('Error al insertar venta:', err.message);
+                callback(err);
+                return;
+            }
 
-        const insertSaleProductsQuery = `INSERT INTO sale_products (sale_id, product_id, quantity) VALUES (?, ?, ?)`;
-        const insertSalePromosQuery = `INSERT INTO sale_promos (sale_id, promo_id, quantity) VALUES (?, ?, ?)`;
-        const insertSaleAmountsQuery = `INSERT INTO sale_amounts (sale_id, amount, description) VALUES (?, ?, ?)`;
-        const insertExpressPromosQuery = `INSERT INTO express_promos (sale_id, total) VALUES (?, ?)`;
+            const saleId = this.lastID;
 
-        db.serialize(() => {
-            db.run('BEGIN TRANSACTION');
+            const insertSaleProductsQuery = `INSERT INTO sale_products (sale_id, product_id, quantity) VALUES (?, ?, ?)`;
+            const insertSalePromosQuery = `INSERT INTO sale_promos (sale_id, promo_id, quantity) VALUES (?, ?, ?)`;
+            const insertSaleAmountsQuery = `INSERT INTO sale_amounts (sale_id, amount, description) VALUES (?, ?, ?)`;
+            const insertExpressPromosQuery = `INSERT INTO express_promos (sale_id, total) VALUES (?, ?)`;
 
-            sale.products.forEach(product => {
-                if (product.isPromo) {
-                    db.run(insertSalePromosQuery, [saleId, product.promoId, product.quantity], (err) => {
-                        if (err) {
-                            console.error('Error al insertar promo en la venta:', err.message);
-                            db.run('ROLLBACK');
-                            callback(err);
-                            return;
-                        }
+            db.serialize(() => {
+                db.run('BEGIN TRANSACTION');
 
-                        product.productsInPromo.forEach(promoProduct => {
+                sale.products.forEach(product => {
+                    if (product.isPromo) {
+                        db.run(insertSalePromosQuery, [saleId, product.promoId, product.quantity], (err) => {
+                            if (err) {
+                                console.error('Error al insertar promo en la venta:', err.message);
+                                db.run('ROLLBACK');
+                                callback(err);
+                                return;
+                            }
+
+                            product.productsInPromo.forEach(promoProduct => {
+                                const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
+                                db.run(updateStockQuery, [promoProduct.quantity, promoProduct.id], (err) => {
+                                    if (err) {
+                                        console.error('Error al actualizar stock de producto en la promo:', err.message);
+                                        db.run('ROLLBACK');
+                                        callback(err);
+                                        return;
+                                    }
+                                });
+                            });
+                        });
+                    } else {
+                        db.run(insertSaleProductsQuery, [saleId, product.id, product.quantity], (err) => {
+                            if (err) {
+                                console.error('Error al insertar producto en la venta:', err.message);
+                                db.run('ROLLBACK');
+                                callback(err);
+                                return;
+                            }
+
                             const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
-                            db.run(updateStockQuery, [promoProduct.quantity, promoProduct.id], (err) => {
+                            db.run(updateStockQuery, [product.quantity, product.id], (err) => {
                                 if (err) {
-                                    console.error('Error al actualizar stock de producto en la promo:', err.message);
+                                    console.error('Error al actualizar stock de producto:', err.message);
                                     db.run('ROLLBACK');
                                     callback(err);
                                     return;
                                 }
                             });
                         });
-                    });
-                } else {
-                    db.run(insertSaleProductsQuery, [saleId, product.id, product.quantity], (err) => {
-                        if (err) {
-                            console.error('Error al insertar producto en la venta:', err.message);
-                            db.run('ROLLBACK');
-                            callback(err);
-                            return;
-                        }
+                    }
+                });
 
-                        const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
-                        db.run(updateStockQuery, [product.quantity, product.id], (err) => {
+                if (sale.amounts && sale.amounts.length > 0) {
+                    // console.log(JSON.stringify(sale.amounts, null, 2));
+                    sale.amounts.forEach(amount => {
+                        db.run(insertSaleAmountsQuery, [saleId, amount.amount, amount.description || null], (err) => {
                             if (err) {
-                                console.error('Error al actualizar stock de producto:', err.message);
+                                console.error('Error al insertar monto suelto:', err.message);
                                 db.run('ROLLBACK');
                                 callback(err);
                                 return;
@@ -271,54 +205,40 @@ function insertSale(sale, callback) {
                         });
                     });
                 }
-            });
 
-            if (sale.amounts && sale.amounts.length > 0) {
-                // console.log(JSON.stringify(sale.amounts, null, 2));
-                sale.amounts.forEach(amount => {
-                    db.run(insertSaleAmountsQuery, [saleId, amount.amount, amount.description || null], (err) => {
-                        if (err) {
-                            console.error('Error al insertar monto suelto:', err.message);
-                            db.run('ROLLBACK');
-                            callback(err);
-                            return;
-                        }
-                    });
-                });
-            }
-
-            if (sale.expressPromos && sale.expressPromos.length > 0) {
-                sale.expressPromos.forEach(expressPromo => {
-                    db.run(insertExpressPromosQuery, [saleId, expressPromo.total], (err) => {
-                        if (err) {
-                            console.error('Error al insertar promo express en la venta:', err.message);
-                            db.run('ROLLBACK');
-                            callback(err);
-                            return;
-                        }
-                        expressPromo.products.forEach(promoProduct => {
-                            const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
-                            db.run(updateStockQuery, [promoProduct.quantity, promoProduct.id], (err) => {
-                                if (err) {
-                                    console.error('Error al actualizar stock de producto en la promo express:', err.message);
-                                    db.run('ROLLBACK');
-                                    callback(err);
-                                    return;
-                                }
+                if (sale.expressPromos && sale.expressPromos.length > 0) {
+                    sale.expressPromos.forEach(expressPromo => {
+                        db.run(insertExpressPromosQuery, [saleId, expressPromo.total], (err) => {
+                            if (err) {
+                                console.error('Error al insertar promo express en la venta:', err.message);
+                                db.run('ROLLBACK');
+                                callback(err);
+                                return;
+                            }
+                            expressPromo.products.forEach(promoProduct => {
+                                const updateStockQuery = `UPDATE products SET stock = stock - ? WHERE id = ?`;
+                                db.run(updateStockQuery, [promoProduct.quantity, promoProduct.id], (err) => {
+                                    if (err) {
+                                        console.error('Error al actualizar stock de producto en la promo express:', err.message);
+                                        db.run('ROLLBACK');
+                                        callback(err);
+                                        return;
+                                    }
+                                });
                             });
                         });
                     });
-                });
-            }
-
-            db.run('COMMIT', (err) => {
-                if (err) {
-                    console.error('Error al confirmar transacción:', err.message);
-                    callback(err);
-                } else {
-                    console.log(`Venta ${saleId} registrada con éxito`);
-                    callback(null);
                 }
+
+                db.run('COMMIT', (err) => {
+                    if (err) {
+                        console.error('Error al confirmar transacción:', err.message);
+                        callback(err);
+                    } else {
+                        console.log(`Venta ${saleId} registrada con éxito`);
+                        callback(null);
+                    }
+                });
             });
         });
     });
@@ -842,6 +762,54 @@ function updatePromo(promo, callback) {
     });
 }
 
+function createBoxesTable() {
+    db.run(`CREATE TABLE IF NOT EXISTS boxes (
+        box_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        box_date TEXT NOT NULL,
+        box_total INTEGER,
+        box_net_total INTEGER
+    )`, (err) => {
+        if (err) {
+            console.error('Error al crear la tabla de cajas:', err.message);
+        } else {
+            console.log('Tabla de cajas creada o existente');
+        }
+    });
+}
+
+function createExpensesTable() {
+    db.run(`CREATE TABLE IF NOT EXISTS expenses (
+        expense_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        box_id INTEGER,
+        expense_total INTEGER,
+        expense_description TEXT NOT NULL,
+        expense_author TEXT NOT NULL,
+        FOREIGN KEY (box_id) REFERENCES boxes(box_id)
+    )`, (err) => {
+        if (err) {
+            console.error('Error al crear la tabla de gastos:', err.message);
+        } else {
+            console.log('Tabla de gastos creada o existente');
+        }
+    });
+}
+
+function insertBox(callback) {
+    const date = moment().tz('America/Argentina/Buenos_Aires').format('DD/MM/YYYY');
+
+    const boxQuery = `INSERT INTO boxes (box_date, box_total, box_net_total) VALUES (?, 0, 0)`;
+
+    db.run(boxQuery, [date], function(err) {
+        if (err) {
+            console.error('Error al abrir caja:', err.message);
+            callback(err);
+        } else {
+            const boxId = this.lastID;
+            callback(null, boxId);
+        }
+    });
+}
+
 module.exports = {
     createTable,
     insertProduct,
@@ -868,5 +836,8 @@ module.exports = {
     createExpressPromosTable,
     insertExpressPromo,
     getExpressPromosBySaleId,
-    updatePromo
+    updatePromo,
+    createBoxesTable,
+    createExpensesTable,
+    insertBox
 };

@@ -4,93 +4,97 @@
     <span class="visually-hidden">Loading...</span>
 </div>
 <div *ngIf="!loading">
-    <button class="btn btn-dark btn-lg" (click)="addSale()" (keydown.enter)="$event.preventDefault()">Agregar venta</button>
-    <div class="row">
-        <div class="col-6" *ngFor="let sale of sales; let i = index" [attr.data-sale-index]="i">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <button class="btn btn-dark" (click)="addProductToSale(sale, i)">Agregar producto</button>
-                        <button class="btn btn-dark" (click)="addExpressPromoToSale(sale, i)">Crear promo</button>
-                        <button class="btn btn-success" (click)="insertSale(sale)">Guardar venta</button>
-                        <button class="btn btn-danger" (click)="clearSale(sale);showCancelledSaleToast()">Cancelar venta</button>
+    <button *ngIf="!boxOpened" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#openBoxModal" (keydown.enter)="$event.preventDefault()">Abrir caja</button>
+    <button *ngIf="boxOpened" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#closeBoxModal" (keydown.enter)="$event.preventDefault()">Cerrar caja</button>
+    <div *ngIf="boxOpened">
+        <button class="btn btn-dark" (click)="addSale()" (keydown.enter)="$event.preventDefault()">Agregar venta</button>
+        <div class="row">
+            <div class="col-6" *ngFor="let sale of sales; let i = index" [attr.data-sale-index]="i">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <button class="btn btn-dark" (click)="addProductToSale(sale, i)">Agregar producto</button>
+                            <button class="btn btn-dark" (click)="addExpressPromoToSale(sale, i)">Crear promo</button>
+                            <button class="btn btn-success" (click)="insertSale(sale)">Guardar venta</button>
+                            <button class="btn btn-danger" (click)="clearSale(sale);showCancelledSaleToast()">Cancelar venta</button>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" (click)="cancelSale(sale)"></button>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" (click)="cancelSale(sale)"></button>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item list-group-item-express-promo" *ngFor="let expressPromo of sale.expressPromos; let expressPromoIndex = index;">
-                            <button class="btn btn-dark add-product-to-express-promo-btn" (click)="addProductToExpressPromo(expressPromo)" [disabled]="expressPromo.confirmed">Agregar producto</button>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item" *ngFor="let expressPromoProduct of expressPromo.products; let expressPromoProductIndex = index;">
-                                    <div class="form-floating" *ngIf="!expressPromoProduct.name">
-                                        <input (blur)="onBlur()" (keydown.enter)="onExpressPromoProductEnter(expressPromoProduct, expressPromo, expressPromoProductIndex)" [(ngModel)]="expressPromoProduct.barcode" (input)="onExpressPromoSearchChange(expressPromoProduct.barcode)" [attr.list]="'expressPromoDatalistOptions'" #floatingExpressPromoProduct name="floatingExpressPromoProduct" type="text" class="form-control" id="floatingExpressPromoProduct" placeholder="Código de barras o nombre" [disabled]="expressPromo.confirmed">
-                                        <label for="floatingExpressPromoProduct">Código de barras o nombre</label>
-                                        <datalist id="expressPromoDatalistOptions">
-                                            <!-- <option value="Cargando..." *ngIf="isLoadingExpressPromoDatalist"> -->
-                                            <!-- <option *ngFor="let option of expressPromoDatalist; trackBy: trackByProductName" value="{{ option.name + ' - ' + option.brand ? option.brand : 'Sin marca' }}"> -->
-                                            <option *ngFor="let option of expressPromoDatalist; trackBy: trackByProductName" value="{{ option.name }}">
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item list-group-item-express-promo" *ngFor="let expressPromo of sale.expressPromos; let expressPromoIndex = index;">
+                                <button class="btn btn-dark add-product-to-express-promo-btn" (click)="addProductToExpressPromo(expressPromo)" [disabled]="expressPromo.confirmed">Agregar producto</button>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item" *ngFor="let expressPromoProduct of expressPromo.products; let expressPromoProductIndex = index;">
+                                        <div class="form-floating" *ngIf="!expressPromoProduct.name">
+                                            <input (blur)="onBlur()" (keydown.enter)="onExpressPromoProductEnter(expressPromoProduct, expressPromo, expressPromoProductIndex)" [(ngModel)]="expressPromoProduct.barcode" (input)="onExpressPromoSearchChange(expressPromoProduct.barcode)" [attr.list]="'expressPromoDatalistOptions'" #floatingExpressPromoProduct name="floatingExpressPromoProduct" type="text" class="form-control" id="floatingExpressPromoProduct" placeholder="Código de barras o nombre" [disabled]="expressPromo.confirmed">
+                                            <label for="floatingExpressPromoProduct">Código de barras o nombre</label>
+                                            <datalist id="expressPromoDatalistOptions">
+                                                <!-- <option value="Cargando..." *ngIf="isLoadingExpressPromoDatalist"> -->
+                                                <!-- <option *ngFor="let option of expressPromoDatalist; trackBy: trackByProductName" value="{{ option.name + ' - ' + option.brand ? option.brand : 'Sin marca' }}"> -->
+                                                <option *ngFor="let option of expressPromoDatalist; trackBy: trackByProductName" value="{{ option.name }}">
+                                            </datalist>
+                                        </div>
+                                        <div *ngIf="expressPromoProduct.name">
+                                            <div class="form-floating">
+                                                <input name="floatingExpressPromoProductName" type="text" class="form-control" id="floatingExpressPromoProductName" placeholder="{{ expressPromoProduct.name }} | ${{ expressPromoProduct.price }}/u" disabled>
+                                                <label for="floatingExpressPromoProductName">{{ expressPromoProduct.name }} | ${{ expressPromoProduct.price }}/u</label>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="form-floating">
+                                                    <input [(ngModel)]="expressPromoProduct.quantity" min="1" name="floatingExpressPromoProductQuantity" type="number" class="form-control" id="floatingExpressPromoProductQuantity" placeholder="Cantidad" [disabled]="expressPromo.confirmed">
+                                                    <label for="floatingExpressPromoProductQuantity">Cantidad</label>
+                                                </div>
+                                                <button (click)="deleteExpressPromoProduct(expressPromo, expressPromoProductIndex)" type="button" class="btn-close delete-product-btn" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                                <div class="d-flex align-items-center">
+                                    <div class="form-floating expressPromoTotalInput">
+                                        <input [(ngModel)]="expressPromo.total" (keydown.enter)="confirmExpressPromo(expressPromo, sale)" #floatingExpressPromoTotal name="floatingExpressPromoTotal" type="number" class="form-control" id="floatingExpressPromoTotal" placeholder="Total" [disabled]="expressPromo.confirmed">
+                                        <label for="floatingExpressPromoTotal">Total</label>
+                                    </div>
+                                    <button (click)="deleteExpressPromo(sale, expressPromoIndex)" type="button" class="btn-close delete-express-promo-btn" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                            </li>
+                            <li class="list-group-item" *ngFor="let product of sale.products; let productIndex = index; trackBy: trackByProduct">
+                                <div class="d-flex justify-content-between align-items-center" *ngIf="!product.id&&!product.promoId">
+                                    <div class="form-floating add-by-barcode-or-name">
+                                        <input (blur)="onBlur()" (input)="onSearchChange(product.barcode)" [attr.list]="'datalistOptions'" #floatingProduct [(ngModel)]="product.barcode" (keydown)="onEnter($event, product, sale, i)" name="floatingProduct" type="text" class="form-control" id="floatingProduct" placeholder="Código de barras o nombre">
+                                        <label for="floatingProduct">Código de barras o nombre</label>
+                                        <datalist id="datalistOptions">
+                                            <!-- <option *ngFor="let option of datalist; trackBy: trackByProductName" value="{{ option.name }}"> -->
+                                            <option *ngFor="let option of datalist;" value="{{ option.name }}">{{ option.brand }}</option>
                                         </datalist>
                                     </div>
-                                    <div *ngIf="expressPromoProduct.name">
-                                        <div class="form-floating">
-                                            <input name="floatingExpressPromoProductName" type="text" class="form-control" id="floatingExpressPromoProductName" placeholder="{{ expressPromoProduct.name }} | ${{ expressPromoProduct.price }}/u" disabled>
-                                            <label for="floatingExpressPromoProductName">{{ expressPromoProduct.name }} | ${{ expressPromoProduct.price }}/u</label>
+                                    <div class="form-floating add-amount">
+                                        <div class="input-group">
+                                            <div class="input-group-text">$</div>
+                                            <input [(ngModel)]="sale.amount" (keydown.enter)="insertAmount(sale, product, productIndex, i)" #floatingAmount name="floatingAmount" type="number" class="form-control" id="{{ 'floatingAmount' + productIndex}}" placeholder="Monto">
                                         </div>
-                                        <div class="d-flex align-items-center">
-                                            <div class="form-floating">
-                                                <input [(ngModel)]="expressPromoProduct.quantity" min="1" name="floatingExpressPromoProductQuantity" type="number" class="form-control" id="floatingExpressPromoProductQuantity" placeholder="Cantidad" [disabled]="expressPromo.confirmed">
-                                                <label for="floatingExpressPromoProductQuantity">Cantidad</label>
-                                            </div>
-                                            <button (click)="deleteExpressPromoProduct(expressPromo, expressPromoProductIndex)" type="button" class="btn-close delete-product-btn" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
+                                        <label class="visually-hidden" for="{{ 'floatingAmount' + productIndex}}">Monto</label>
                                     </div>
-                                </li>
-                            </ul>
-                            <div class="d-flex align-items-center">
-                                <div class="form-floating expressPromoTotalInput">
-                                    <input [(ngModel)]="expressPromo.total" (keydown.enter)="confirmExpressPromo(expressPromo, sale)" #floatingExpressPromoTotal name="floatingExpressPromoTotal" type="number" class="form-control" id="floatingExpressPromoTotal" placeholder="Total" [disabled]="expressPromo.confirmed">
-                                    <label for="floatingExpressPromoTotal">Total</label>
                                 </div>
-                                <button (click)="deleteExpressPromo(sale, expressPromoIndex)" type="button" class="btn-close delete-express-promo-btn" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                        </li>
-                        <li class="list-group-item" *ngFor="let product of sale.products; let productIndex = index; trackBy: trackByProduct">
-                            <div class="d-flex justify-content-between align-items-center" *ngIf="!product.id&&!product.promoId">
-                                <div class="form-floating add-by-barcode-or-name">
-                                    <input (blur)="onBlur()" (input)="onSearchChange(product.barcode)" [attr.list]="'datalistOptions'" #floatingProduct [(ngModel)]="product.barcode" (keydown)="onEnter($event, product, sale, i)" name="floatingProduct" type="text" class="form-control" id="floatingProduct" placeholder="Código de barras o nombre">
-                                    <label for="floatingProduct">Código de barras o nombre</label>
-                                    <datalist id="datalistOptions">
-                                        <!-- <option *ngFor="let option of datalist; trackBy: trackByProductName" value="{{ option.name }}"> -->
-                                        <option *ngFor="let option of datalist;" value="{{ option.name }}">{{ option.brand }}</option>
-                                    </datalist>
-                                </div>
-                                <div class="form-floating add-amount">
-                                    <div class="input-group">
-                                        <div class="input-group-text">$</div>
-                                        <input [(ngModel)]="sale.amount" (keydown.enter)="insertAmount(sale, product, productIndex, i)" #floatingAmount name="floatingAmount" type="number" class="form-control" id="{{ 'floatingAmount' + productIndex}}" placeholder="Monto">
-                                    </div>
-                                    <label class="visually-hidden" for="{{ 'floatingAmount' + productIndex}}">Monto</label>
-                                </div>
-                            </div>
-                            <div *ngIf="product.name">
-                                <div class="form-floating">
-                                    <input name="floatingProductName" type="text" class="form-control" id="floatingProductName" placeholder="{{ product.name }} | ${{ product.price }}/u | Total: ${{ product.price * product.quantity }}" disabled>
-                                    <label for="floatingProductName">{{ product.name }} | ${{ product.price }}/u | Total: ${{ product.price * product.quantity }}</label>
-                                </div>
-                                <div class="d-flex align-items-center">
+                                <div *ngIf="product.name">
                                     <div class="form-floating">
-                                        <input [disabled]="product.id == 99999" min="1" (change)="onUpdateQuantity(product, sale, product.quantity)" [(ngModel)]="product.newQuantity" name="floatingProductQuantity" type="number" class="form-control" id="floatingProductQuantity" placeholder="Cantidad">
-                                        <label for="floatingProductQuantity">Cantidad</label>
+                                        <input name="floatingProductName" type="text" class="form-control" id="floatingProductName" placeholder="{{ product.name }} | ${{ product.price }}/u | Total: ${{ product.price * product.quantity }}" disabled>
+                                        <label for="floatingProductName">{{ product.name }} | ${{ product.price }}/u | Total: ${{ product.price * product.quantity }}</label>
                                     </div>
-                                    <button type="button" class="btn-close delete-product-btn" data-bs-dismiss="modal" aria-label="Close" (click)="deleteProduct(sale, productIndex)"></button>
+                                    <div class="d-flex align-items-center">
+                                        <div class="form-floating">
+                                            <input [disabled]="product.id == 99999" min="1" (change)="onUpdateQuantity(product, sale, product.quantity)" [(ngModel)]="product.newQuantity" name="floatingProductQuantity" type="number" class="form-control" id="floatingProductQuantity" placeholder="Cantidad">
+                                            <label for="floatingProductQuantity">Cantidad</label>
+                                        </div>
+                                        <button type="button" class="btn-close delete-product-btn" data-bs-dismiss="modal" aria-label="Close" (click)="deleteProduct(sale, productIndex)"></button>
+                                    </div>
                                 </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                <div class="card-footer">
-                    <h3>Total: ${{ sale.total }}</h3>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <h3>Total: ${{ sale.total }}</h3>
+                    </div>
                 </div>
             </div>
         </div>
@@ -132,6 +136,42 @@
         </div>
         <div class="toast-body">
             Para guardar se debe confirmar todas las promos express.
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="openBoxModal" tabindex="-1" aria-labelledby="openBoxModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="openBoxModalLabel">Abrir caja</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            Seguro que desea abrir caja?
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No abrir</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal" (click)="openBox()">Abrir</button>
+        </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="closeBoxModal" tabindex="-1" aria-labelledby="closeBoxModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="closeBoxModalLabel">Cerrar caja</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            Seguro que desea cerrar la caja? Esta acción es irreversible.
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No cerrar</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" (click)="closeBox()">Cerrar</button>
+        </div>
         </div>
     </div>
 </div>
