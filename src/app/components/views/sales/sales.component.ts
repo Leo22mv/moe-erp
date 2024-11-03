@@ -27,10 +27,16 @@ export class SalesComponent implements OnInit {
   searchSubject = new Subject<string>();
   expressPromoSearchSubject = new Subject<string>();
   productMap: Map<string, any> = new Map();
+  boxOpened: boolean = false;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
+    const localStorageOpenedBox = localStorage.getItem('openedBox');
+    if (localStorageOpenedBox) {
+      this.boxOpened = true;
+    }
+
     const localStorageSales = localStorage.getItem('sales');
     if (localStorageSales) {
       const salesArray = JSON.parse(localStorageSales);
@@ -117,6 +123,17 @@ export class SalesComponent implements OnInit {
         // console.log(this.promos);
       } else {
         console.error('Error al obtener productos:', response.error);
+      }
+    });
+
+    window.electron.receive('insert-box-response', (response: any) => {
+      // console.log(JSON.stringify(response, null, 2));
+      if (response.success) {
+          this.boxOpened = true;
+          localStorage.setItem('openedBox', 'true');
+          this.cdr.detectChanges();
+      } else {
+          console.error('Error al buscar productos:', response.error);
       }
     });
   }
@@ -820,5 +837,40 @@ export class SalesComponent implements OnInit {
     this.datalist = [];
     this.expressPromoDatalist = [];
     this.filteredProducts = [];
+    this.cdr.detectChanges();
+  }
+
+  openBox() {
+    window.electron.send('insert-box');
+
+    const toastLiveExample = document.getElementById('openedBoxToast');
+
+    if (toastLiveExample) {
+      const toast = new (window as any).bootstrap.Toast(toastLiveExample, {
+        delay: 5000
+      });
+      toast.show();
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  closeBox() {
+    localStorage.removeItem('openedBox');
+    localStorage.setItem('sales', '[]');
+
+    this.sales = [];
+    this.boxOpened = false;
+
+    const toastLiveExample = document.getElementById('closedBoxToast');
+
+    if (toastLiveExample) {
+      const toast = new (window as any).bootstrap.Toast(toastLiveExample, {
+        delay: 5000
+      });
+      toast.show();
+    }
+
+    this.cdr.detectChanges();
   }
 }

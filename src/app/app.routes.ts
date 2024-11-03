@@ -11,6 +11,7 @@ import { PromosComponent } from './components/views/promos/promos.component';
 import { PromosListComponent } from './components/views/promos/promos-list/promos-list.component';
 import { AddPromoComponent } from './components/views/promos/add-promo/add-promo.component';
 import { VersionsComponent } from './components/views/versions/versions.component';
+import { BoxesByDateComponent } from './components/views/box/boxes-by-date/boxes-by-date.component';
 
 export const routes: Routes = [
     { path: "versions", component: VersionsComponent },
@@ -21,6 +22,7 @@ export const routes: Routes = [
     { path: "box", component: BoxComponent, children: [
         { path: "sales", component: BoxSalesComponent },
         { path: "sales-by-date", component: SalesByDateComponent },
+        { path: "boxes-by-date", component: BoxesByDateComponent },
     ] },
     { path: "sales", component: SalesComponent },
     { path: "products", component: ProductsComponent, children: [
