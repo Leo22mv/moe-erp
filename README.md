@@ -2,6 +2,12 @@
 
 ## Notas de versiones
 
+### 2.0.0 (Próxima versión)
+
+- Apertura y cierre de caja.
+- Asignar cada venta a una caja.
+- Obtener todas las cajas de un día específico, con sus respectivas ventas.
+
 ### 1.1.2 (Versión actual)
 
 - Agregado de nuevo sistema de búsqueda a sección de agregar promos.
