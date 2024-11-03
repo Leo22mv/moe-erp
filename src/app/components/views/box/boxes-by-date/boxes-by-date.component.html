@@ -22,10 +22,10 @@
             <ul class="list-group">
                 <li class="list-group-item" *ngFor="let sale of box.sales; let saleIndex = index">
                     Venta N°: {{ saleIndex + 1 }} | Fecha: {{ sale.formattedDate }} | Hora: {{ sale.formattedTime }} | Total: ${{ sale.total }} | 
-                    <a class="link-dark" data-bs-toggle="collapse" href="#salesDetailsCollapseExample{{ saleIndex }}" role="button" aria-expanded="false" aria-controls="salesDetailsCollapseExample">
+                    <a class="link-dark" data-bs-toggle="collapse" href="#salesDetailsCollapseExample{{ sale.id }}" role="button" aria-expanded="false" aria-controls="salesDetailsCollapseExample">
                         Detalles
                     </a>
-                    <div class="collapse" id="salesDetailsCollapseExample{{ saleIndex }}">
+                    <div class="collapse" id="salesDetailsCollapseExample{{ sale.id }}">
                         <ul class="list-group">
                             <li class="list-group-item list-group-item-secondary" *ngFor="let expressPromo of sale.expressPromos">Promo express | Total: {{ expressPromo.total }}</li>
                             <li class="list-group-item list-group-item-secondary" *ngFor="let product of sale.products">Producto: {{ product.name }} | Cantidad: {{ product.quantity }} | Precio: ${{ product.price }} | Total: ${{ product.price * product.quantity }}</li>

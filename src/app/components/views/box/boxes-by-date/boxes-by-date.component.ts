@@ -17,51 +17,131 @@ export class BoxesByDateComponent {
   date: string = "";
   empty: boolean = false;
   loading: boolean = false;
+  registeredResponse: boolean = false;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnInit() {
-    window.electron.receive('get-boxes-by-date-response', (response: any) => {
-      if (response.success) {
-        if (response.data.length > 0) {
-          // console.log(response);
-          this.boxes = response.data;
-          this.boxes.forEach((box: any) => {
-            window.electron.send('get-sales-by-box', box.box_id);
+    if (!this.registeredResponse) {
+      window.electron.receive('get-boxes-by-date-response', (response: any) => {
+        if (response.success) {
+          if (response.data.length > 0) {
+            console.log(response);
+            this.boxes = response.data;
+            // this.boxes.forEach((box: any) => {
+            //   window.electron.send('get-sales-by-box', box.box_id);
+              
+            //   window.electron.receive('get-sales-by-box-response', (salesResponse: any) => {
+            //     // console.log(salesResponse);
+            //     if (salesResponse.success) {
+            //       if (salesResponse.data.length > 0) {
+            //         // console.log(salesResponse.data);
+            //         box.sales = salesResponse.data;
+            //       }
+            //     } else {
+            //       console.error(salesResponse.error);
+            //     }
+            //   });
+            // });
+  
+            this.loading = false;
+  
+            // console.log(this.boxes);
+
+            this.boxes.forEach((box: any) => {
+              box.sales.forEach((sale: any) => {
+                const [formattedDate, formattedTime] = sale.date.split(' ');
+                sale.formattedDate = formattedDate;
+                sale.formattedTime = formattedTime;
+
+                let uniqueArray: any[] = [];
             
-            window.electron.receive('get-sales-by-box-response', (salesResponse: any) => {
-              // console.log(salesResponse);
-              if (salesResponse.success) {
-                if (salesResponse.data.length > 0) {
-                  // console.log(salesResponse.data);
-                  box.sales = salesResponse.data;
-                }
-              } else {
-                console.error(salesResponse.error);
-              }
-            });
-          });
+                sale.products.forEach((item: any) => {
+                  let existent = false;
 
-          this.loading = false;
+                  uniqueArray.forEach((uniqueItem: any) => {
+                    if (JSON.stringify(item) == JSON.stringify(uniqueItem)) {
+                      existent = true;
+                    }
+                  });
+                  
+                  if (!existent) {
+                    uniqueArray.push(item);
+                  }
+                });
+                sale.products = uniqueArray;
+                uniqueArray = [];
 
-          console.log(this.boxes);
+                sale.promos.forEach((item: any) => {
+                  let existent = false;
+
+                  uniqueArray.forEach((uniqueItem: any) => {
+                    if (JSON.stringify(item) == JSON.stringify(uniqueItem)) {
+                      existent = true;
+                    }
+                  });
+                  
+                  if (!existent) {
+                    uniqueArray.push(item);
+                  }
+                });
+                sale.promos = uniqueArray;
+                uniqueArray = [];
+
+                sale.amounts.forEach((item: any) => {
+                  let existent = false;
+
+                  uniqueArray.forEach((uniqueItem: any) => {
+                    if (JSON.stringify(item) == JSON.stringify(uniqueItem)) {
+                      existent = true;
+                    }
+                  });
+                  
+                  if (!existent) {
+                    uniqueArray.push(item);
+                  }
+                });
+                sale.amounts = uniqueArray;
+                uniqueArray = [];
+
+                sale.expressPromos.forEach((item: any) => {
+                  let existent = false;
+
+                  uniqueArray.forEach((uniqueItem: any) => {
+                    if (JSON.stringify(item) == JSON.stringify(uniqueItem)) {
+                      existent = true;
+                    }
+                  });
+                  
+                  if (!existent) {
+                    uniqueArray.push(item);
+                  }
+                });
+                sale.expressPromos = uniqueArray;
+              })
+            })
+          } else {
+            this.empty = true;
+            this.loading = false;
+          }
+          this.cdr.detectChanges();
         } else {
-          this.empty = true;
-          this.loading = false;
+          console.error(response.error);
         }
-        this.cdr.detectChanges();
-      } else {
-        console.error(response.error);
-      }
-    });
+      });
+
+      this.registeredResponse = true;
+    }
   }
 
   getBoxesByDate() {
     this.clearBoxes();
     this.loading = true;
+
     const [year, month, day] = this.date.split("-");
     const formattedDate = `${day}/${month}/${year}`;
-    // console.log(formattedDate)
+
+    // console.log('send');
     window.electron.send('get-boxes-by-date', formattedDate);
   }
 

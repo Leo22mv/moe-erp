@@ -837,6 +837,7 @@ export class SalesComponent implements OnInit {
     this.datalist = [];
     this.expressPromoDatalist = [];
     this.filteredProducts = [];
+    this.cdr.detectChanges();
   }
 
   openBox() {
