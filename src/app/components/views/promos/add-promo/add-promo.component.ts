@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+// import { ipcMain } from 'electron';
 
 @Component({
   selector: 'app-add-promo',
@@ -25,6 +26,9 @@ export class AddPromoComponent {
   products: any = [];
   loading: boolean = true;
   filteredProducts: any = [];
+  checkNameError: boolean = false;
+  existentNameError: boolean = false;
+  genericError: boolean = false;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
@@ -34,6 +38,8 @@ export class AddPromoComponent {
         event.preventDefault();
       });
     }
+
+    // ipcMain.removeAllListeners('check-name-uniqueness');
 
     window.electron.receive('search-products-2-response', (response: any) => {
       if (response.success) {
@@ -84,13 +90,19 @@ export class AddPromoComponent {
     });
 
     window.electron.receive('add-promo-response', (response: any) => {
-      if (response) {
+      if (response.success) {
           console.log(response);
           this.added = true;
-          this.cdr.detectChanges();
+          this.form = {
+            name: null,
+            price: null,
+            products: []
+          }
       } else {
           console.error('Error al agregar promo:', response.error);
+          this.genericError = true;
       }
+      this.cdr.detectChanges();
     });
 
     window.electron.send('get-products');
@@ -103,6 +115,19 @@ export class AddPromoComponent {
       } else {
         console.error('Error al obtener productos:', response.error);
       }
+    });
+
+    window.electron.receive('check-name-uniqueness-response', (response: any) => {
+      if (response.success) {
+        if (response.existent) {
+          this.existentNameError = true;
+        } else {
+          this.addPromo({...this.form});
+        }
+      } else {
+        this.checkNameError = true;
+      }
+      this.cdr.detectChanges();
     });
   }
 
@@ -133,12 +158,10 @@ export class AddPromoComponent {
       window.electron.send('search-products-2', product.name);
     }
 
-    // Limpiar la suscripción anterior si existe
     // const callback = (response: any) => {
     //   if (response.success) {
     //     const selectedProduct = response.data[0];
         
-    //     // Actualizar solo el producto en el índice correcto
     //     this.form.products[index] = {
     //       ...this.form.products[index],
     //       id: selectedProduct.id,
@@ -150,11 +173,9 @@ export class AddPromoComponent {
     //   } else {
     //     console.error('Error al obtener productos:', response.error);
     //   }
-    //   // Eliminar la suscripción después de recibir la respuesta
     //   // window.electron.off('search-products-2-response', callback);
     // };
 
-    // Suscribir el callback solo para esta interacción
     // window.electron.receive('search-products-2-response', callback);
   }
 
@@ -179,8 +200,7 @@ export class AddPromoComponent {
   }
 
   addPromo(form: any): void {
-    this.emptyFieldsError = false;
-    this.added = false;
+    console.log(form);
     if (!form.name || form.name.length < 1 || !form.price) {
       this.emptyFieldsError = true;
     } else {
@@ -189,5 +209,19 @@ export class AddPromoComponent {
       }
       window.electron.send('add-promo', form);
     }
+  }
+
+  onAddPromoButtonClick() {
+    const name = {...this.form}.name;
+    window.electron.send('check-name-uniqueness', name);
+    this.clearErrors();
+  }
+
+  clearErrors() {
+    this.emptyFieldsError = false;
+    this.added = false;
+    this.checkNameError = false;
+    this.existentNameError = false;
+    this.cdr.detectChanges();
   }
 }

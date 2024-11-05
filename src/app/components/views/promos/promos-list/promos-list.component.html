@@ -81,9 +81,16 @@
                 </ul>
             </form>
         </div>
+        <div class="alert alert-danger" role="alert" *ngIf="checkNameError">
+            Error al verificar existencia de producto
+        </div>
+        
+        <div class="alert alert-danger" role="alert" *ngIf="existentNameError">
+            Ya existe un producto o promo con el mismo nombre
+        </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" (click)="savePromo()">Guardar</button>
+            <button type="button" class="btn btn-primary" (click)="onSavePromoButtonClick()">Guardar</button>
         </div>
         </div>
     </div>

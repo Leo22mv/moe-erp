@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+// import { ipcMain } from 'electron';
 
 @Component({
   selector: 'app-product-add',
@@ -27,35 +28,36 @@ export class ProductAddComponent {
   emptyFieldsError: boolean = false;
   searchingOnApi: boolean = false;
   notFoundOnApi: boolean = false;
+  checkNameError: boolean = false;
+  existentNameError: boolean = false;
+  existentBarcodeError: boolean = false;
+  genericError: boolean = false;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnInit() {
+    // ipcMain.removeAllListeners('check-name-uniqueness');
+
     if (typeof document !== 'undefined') {
       document.getElementById('addProductForm')?.addEventListener('submit', function(event) {
         event.preventDefault();
       });
-    }
-  }
-
-  addProduct(): void {
-    this.emptyFieldsError = false;
-    this.added = false;
-    if (this.form.name.length < 1 || !this.form.stock || !this.form.sellPrice || !this.form.stock_limit) {
-      this.emptyFieldsError = true;
-    } else {
-      window.electron.send('insert-product', { 
-        name: this.form.name,
-        price: this.form.price,
-        sellPrice: this.form.sellPrice,
-        stock: this.form.stock,
-        barcode: this.form.barcode,
-        brand: this.form.brand,
-        stock_limit: this.form.stock_limit
-      });
   
+      window.electron.receive('check-name-uniqueness-response', (response: any) => {
+        if (response.success) {
+          if (response.existent) {
+            this.existentNameError = true;
+          } else {
+            window.electron.send('insert-product', this.form);
+          }
+        } else {
+          this.checkNameError = true;
+        }
+        this.cdr.detectChanges();
+      });
+
       window.electron.receive('product-inserted', (response: any) => {
-          console.log(response);
+        if (response.success) {
           this.added = true;
           this.form.name = "",
           this.form.price = null,
@@ -64,8 +66,34 @@ export class ProductAddComponent {
           this.form.barcode = null,
           this.form.brand = null,
           this.form.stock_limit = null
-          this.cdr.detectChanges();
+        } else {
+          console.error(response);
+
+          switch (response.error) {
+            case "SQLITE_CONSTRAINT: UNIQUE constraint failed: products.barcode":
+              this.existentBarcodeError = true;
+              break;
+            default:
+              this.genericError = true;
+              break;
+          }
+        }
+        this.cdr.detectChanges();
       });
+    }
+  }
+
+  addProduct(): void {
+    this.emptyFieldsError = false;
+    this.added = false;
+    this.checkNameError = false;
+    this.existentNameError = false;
+    this.existentBarcodeError = false;
+    if (this.form.name.length < 1 || !this.form.stock || !this.form.sellPrice || !this.form.stock_limit) {
+      this.emptyFieldsError = true;
+    } else {
+      // console.log('sending');
+      window.electron.send('check-name-uniqueness', this.form.name);
     }
   }
 
