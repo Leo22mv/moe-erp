@@ -69,6 +69,18 @@
     <div class="alert alert-danger" role="alert" *ngIf="emptyFieldsError">
         Complete todos los campos obligatorios (*) para continuar
     </div>
+
+    <div class="alert alert-danger" role="alert" *ngIf="checkNameError">
+        Error al verificar existencia de producto
+    </div>
     
-    <button class="btn btn-dark btn-lg" (click)="addPromo(form)">Guardar</button>
+    <div class="alert alert-danger" role="alert" *ngIf="existentNameError">
+        Ya existe un producto o promo con el mismo nombre
+    </div>
+
+    <div class="alert alert-danger" role="alert" *ngIf="genericError">
+        Error en el formulario
+    </div>
+    
+    <button class="btn btn-dark btn-lg" (click)="onAddPromoButtonClick()">Guardar</button>
 </div>

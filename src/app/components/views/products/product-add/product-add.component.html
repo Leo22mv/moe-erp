@@ -45,4 +45,20 @@
     Complete todos los campos obligatorios (*) para continuar
 </div>
 
+<div class="alert alert-danger" role="alert" *ngIf="checkNameError">
+    Error al verificar existencia de producto
+</div>
+
+<div class="alert alert-danger" role="alert" *ngIf="existentNameError">
+    Ya existe un producto o promo con el mismo nombre
+</div>
+
+<div class="alert alert-danger" role="alert" *ngIf="existentBarcodeError">
+    Ya existe un producto con el mismo código de barras
+</div>
+
+<div class="alert alert-danger" role="alert" *ngIf="genericError">
+    Error, volver a intentarlo
+</div>
+
 <button class="btn btn-dark btn-lg" (click)="addProduct()">Agregar</button>

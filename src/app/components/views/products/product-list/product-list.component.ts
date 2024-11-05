@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+// import { ipcMain } from 'electron';
 
 @Component({
   selector: 'app-product-list',
@@ -30,10 +31,14 @@ export class ProductListComponent {
   idForDelete: number = 0;
   searchQuery: string = "";
   withoutResults: boolean = false;
+  existentNameError: boolean = false;
+  checkNameError: boolean = false;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
+    // ipcMain.removeAllListeners('check-name-uniqueness');
+
     if (typeof window !== 'undefined' && window.electron) {
       window.electron.send('get-products');
 
@@ -49,6 +54,31 @@ export class ProductListComponent {
         } else {
             console.error('Error al obtener productos:', response.error);
         }
+      });
+
+      window.electron.receive('product-updated', (event: any, message: any) => {
+        console.log(event);
+      });
+
+      window.electron.receive('check-name-uniqueness-response', (response: any) => {
+        if (response.success) {
+          if (response.existent) {
+            if (response.source == 'promo') {
+              this.existentNameError = true;
+            } else {
+              if (response.product_id == this.updateForm.id) {
+                this.updateProduct();
+              } else {
+                this.existentNameError = true;
+              }
+            }
+          } else {
+            this.updateProduct();
+          }
+        } else {
+          this.checkNameError = true;
+        }
+        this.cdr.detectChanges();
       });
     }
   }
@@ -83,6 +113,7 @@ export class ProductListComponent {
   }
 
   updateFormWithProduct(id: number, name: string, price: number, sellPrice: number, stock: number, barcode: string, brand: string, stock_limit: number) {
+    console.log(id);
     this.updateForm.id = id;
     this.updateForm.name = name;
     this.updateForm.price = price;
@@ -105,10 +136,6 @@ export class ProductListComponent {
       brand: this.updateForm.brand,
       stock_limit: this.updateForm.stock_limit
     });
-    
-    window.electron.receive('product-updated', (event: any, message: any) => {
-        console.log(event);
-    });
 
     let index = this.filteredProducts.findIndex(item => item.id === this.idForDelete);
     if (index !== -1) {
@@ -119,6 +146,12 @@ export class ProductListComponent {
     if (index !== -1) {
         this.products[index] = JSON.parse(JSON.stringify(this.updateForm));
     }
+
+    this.clearErrors();
+
+    const updateModal = document.getElementById('updateModal');
+    const modalInstance = (window as any).bootstrap.Modal.getInstance(updateModal) || new (window as any).bootstrap.Modal(updateModal);
+    modalInstance.hide();
   }
 
   onSearch(): void {
@@ -152,5 +185,15 @@ export class ProductListComponent {
 
   orderByStockAsc() {
     this.filteredProducts = this.filteredProducts.sort((a, b) => a.stock - b.stock);
+  }
+
+  clearErrors() {
+    this.checkNameError = false;
+    this.existentNameError = false;
+    this.cdr.detectChanges();
+  }
+
+  onUpdateButtonClick() {
+    window.electron.send('check-name-uniqueness', this.updateForm.name);
   }
 }

@@ -31,3 +31,6 @@ a {
 .dropdown-toggle {
     margin: 0 0 15px 15px;
  }
+.modal .alert {
+    margin: 0 15px 15px 15px;
+}

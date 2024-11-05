@@ -26,7 +26,7 @@
         <li class="list-group-item text-nowrap flex-shrink-0 {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}" style="min-width: 300px;">Precio de costo: <strong>${{ product.price }}</strong></li>
         <li class="list-group-item text-nowrap flex-shrink-0 {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}" style="min-width: 300px;">Precio de venta: <strong>${{ product.sellPrice }}</strong></li>
         <li class="list-group-item text-nowrap flex-shrink-0 {{ product.stock > product.stock_limit ? 'list-group-item-secondary' : 'list-group-item-danger' }}" style="min-width: 200px;">Stock: <strong>{{ product.stock }}</strong></li>
-        <a class="list-group-item list-group-item-primary list-group-item-action" data-bs-toggle="modal" data-bs-target="#updateModal" (click)="updateFormWithProduct(product.id, product.name, product.price, product.sellPrice, product.stock, product.barcode, product.brand, product.stock_limit); updateIdForDelete(product.id)">MODIFICAR</a>
+        <a class="list-group-item list-group-item-primary list-group-item-action" data-bs-toggle="modal" data-bs-target="#updateModal" (click)="updateFormWithProduct(product.id, product.name, product.price, product.sellPrice, product.stock, product.barcode, product.brand, product.stock_limit); updateIdForDelete(product.id); clearErrors()">MODIFICAR</a>
         <a class="list-group-item list-group-item-danger list-group-item-action" data-bs-toggle="modal" data-bs-target="#deleteModal" (click)="updateIdForDelete(product.id)">ELIMINAR</a>
     </ul>
 </div>
@@ -73,10 +73,17 @@
                 </div>
             </form>
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" (click)="updateProduct()">Guardar</button>
-        </div>
+            <div class="alert alert-danger" role="alert" *ngIf="checkNameError">
+                Error al verificar existencia de producto
+            </div>
+            
+            <div class="alert alert-danger" role="alert" *ngIf="existentNameError">
+                Ya existe un producto o promo con el mismo nombre
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" (click)="onUpdateButtonClick()">Guardar</button>
+            </div>
         </div>
     </div>
 </div>
