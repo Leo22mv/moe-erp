@@ -1,14 +1,28 @@
 <h1>Notas de versiones</h1>
 
-<h3>2.0.1 (Próxima versión)</h3>
+<h3>2.0.2 (Próxima versión)</h3>
 <p>
-- Verificación de nombre existente al agregar productos, para evitar duplicados.<br>
-- Solución a bug que permite agregar productos vacíos en promos.<br>
-- Solución a bug que permite agregar promos express a una venta habiendo otra vacía o sin confirmar.<br>
-- Solución a bug que permite agregar productos a promos express habiendo otro vacío o sin confirmar.
+- Solución a bugs:<br>
+-- Sistema permite agregar promos express a una venta habiendo otra vacía o sin confirmar.<br>
+-- Sistema permite agregar productos a promos express habiendo otro vacío o sin confirmar.<br>
+-- Sistema permite agregar productos vacíos al modificar promos.<br>
+-- Sistema no muestra alerta por campos obligatorios al modificar promos.<br>
+-- Sistema no muestra alerta por campos obligatorios al modificar productos.<br>
+-- Sistema realiza múltiples suscripciones al evento de verificación de nombre, haciendo que falle la sección de agregar promos.
 </p>
 
-<h3>2.0.0 (Versión actual)</h3>
+<h3>2.0.1 (Versión actual)</h3>
+<p>
+- Verificación de nombre existente al agregar productos, para evitar duplicados.<br>
+- Verificación de código de barras existente al agregar productos.<br>
+- Manejo de errores al agregar productos.<br>
+- Solución a bugs:<br>
+-- Al agregar una promo, se agregaba duplicada.<br>
+-- Sistema mostraba alerta de producto agregado correctamente, a pesar de que no se agregó.<br>
+-- Sistema permitía agregar productos vacíos al agregar promos.
+</p>
+
+<h3>2.0.0</h3>
 <p>
 - Apertura y cierre de caja.<br>
 - Asignar cada venta a una caja.<br>
