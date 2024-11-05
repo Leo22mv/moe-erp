@@ -24,7 +24,8 @@ const { createTable,
         createExpressPromosTable,
         insertExpressPromo,
         getExpressPromosBySaleId,
-        updatePromo
+        updatePromo,
+        checkNameUniqueness
       } = require('./db/db');
 const { ipcMain } = require('electron');
 
@@ -67,8 +68,15 @@ app.on('window-all-closed', () => {
 })
 
 ipcMain.on('insert-product', (event, product) => {
-  insertProduct(product.name, product.price, product.sellPrice, product.stock, product.barcode, product.brand, product.stock_limit);
-  event.reply('product-inserted', 'Producto insertado correctamente');
+  insertProduct(product.name, product.price, product.sellPrice, product.stock, product.barcode, product.brand, product.stock_limit, (err, res) => {
+    if (err) {
+      console.error('Error al agregar producto:', err.message);
+      event.reply('product-inserted', { success: false, error: err.message });
+    } else {
+      event.reply('product-inserted', { success: true });
+      console.log('Producto insertado correctamente');
+    }
+  });
 });
 
 ipcMain.on('get-products', (event) => {
@@ -170,10 +178,10 @@ ipcMain.on('add-promo', (event, promo) => {
   addPromo(promo, (err) => {
     if (err) {
         console.error('Error al registrar promo:', err.message);
-        event.reply('add-promo-response', 'Error al registrar la promo');
+        event.reply('add-promo-response', { success: false, error: 'Error al registrar la promo' + err.message });
     } else {
-        console.log('Promo agregada correctamente')
-        event.reply('add-promo-response', 'Promo agregada correctamente');
+        console.log('Promo agregada correctamente');
+        event.reply('add-promo-response', { success: true });
     }
   });
 });
@@ -259,6 +267,21 @@ ipcMain.on('update-promo', (event, promo) => {
     } else {
         console.log('Promo modificada correctamente');
         event.reply('update-promo-response', 'Promo agregada correctamente');
+    }
+  });
+});
+
+ipcMain.on('check-name-uniqueness', (event, name) => {
+  checkNameUniqueness(name, (err, result) => {
+    if (err) {
+        console.error('Error al verificar unicidad del nombre:', err);
+        event.reply('check-name-uniqueness-response', { success: false, error: 'Error al verificar unicidad del nombre: ' + err.message });
+    } else if (result.isDuplicate) {
+        console.log(`El nombre ya existe en la tabla ${result.source}.`);
+        event.reply('check-name-uniqueness-response', { success: true, existent: true, product_id: result.product_id, source: result.source });
+    } else {
+        console.log('El nombre es único, se puede usar.');
+        event.reply('check-name-uniqueness-response', { success: true, existent: false });
     }
   });
 });

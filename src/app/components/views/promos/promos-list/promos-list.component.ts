@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, Subject } from 'rxjs';
+// import { ipcMain } from 'electron';
 
 @Component({
   selector: 'app-promos-list',
@@ -28,10 +29,14 @@ export class PromosListComponent {
   searchSubject = new Subject<string>();
   filteredProducts: any = [];
   promoIndexForUpdate: number | null = null;
+  existentNameError: boolean = false;
+  checkNameError: boolean = false;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
+    // ipcMain.removeAllListeners('check-name-uniqueness');
+
     if (typeof window !== 'undefined' && window.electron) {
       window.electron.send('get-promos');
 
@@ -94,6 +99,27 @@ export class PromosListComponent {
         } else {
             console.error('Error al actualizar promo:', response.error);
         }
+      });
+
+      window.electron.receive('check-name-uniqueness-response', (response: any) => {
+        if (response.success) {
+          if (response.existent) {
+            if (response.source == 'product') {
+              this.existentNameError = true;
+            } else {
+              if (response.product_id == this.idForDelete) {
+                this.savePromo();
+              } else {
+                this.existentNameError = true;
+              }
+            }
+          } else {
+            this.savePromo();
+          }
+        } else {
+          this.checkNameError = true;
+        }
+        this.cdr.detectChanges();
       });
     }
   }
@@ -186,6 +212,8 @@ export class PromosListComponent {
   }
 
   savePromo() {
+    this.clearErrors();
+
     const updatedPromo = {
       ...this.form,
       id: this.idForDelete
@@ -195,13 +223,27 @@ export class PromosListComponent {
       this.promos[this.promoIndexForUpdate] = {...updatedPromo};
     }
 
-    console.log(this.idForDelete);
+    // console.log(this.idForDelete);
     window.electron.send('update-promo', updatedPromo);
+
+    const updateModal = document.getElementById('updateModal');
+    const modalInstance = (window as any).bootstrap.Modal.getInstance(updateModal) || new (window as any).bootstrap.Modal(updateModal);
+    modalInstance.hide();
 
     this.cdr.detectChanges();
   }
 
   updatePromoIndex(promoIndex: any) {
     this.promoIndexForUpdate = promoIndex;
+  }
+
+  onSavePromoButtonClick() {
+    window.electron.send('check-name-uniqueness', this.form.name);
+  }
+
+  clearErrors() {
+    this.checkNameError = false;
+    this.existentNameError = false;
+    this.cdr.detectChanges();
   }
 }

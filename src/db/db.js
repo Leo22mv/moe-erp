@@ -32,14 +32,16 @@ function createTable() {
     });
 }
 
-function insertProduct(name, price, sellPrice, stock, barcode, brand, stock_limit) {
+function insertProduct(name, price, sellPrice, stock, barcode, brand, stock_limit, callback) {
     const query = `INSERT INTO products (name, price, sellPrice, stock, barcode, brand, stock_limit) VALUES (?, ?, ?, ?, ?, ?, ?)`;
     db.run(query, [name, price, sellPrice, stock, barcode, brand, stock_limit], function(err) {
         if (err) {
             console.error('Error al insertar producto:', err.message);
             console.log(name, price, sellPrice, stock, barcode, brand, stock_limit);
+            callback(err, null);
         } else {
             console.log(`Producto agregado con ID: ${this.lastID}`);
+            callback(null, this.lastID);
         }
     });
 }
@@ -596,7 +598,7 @@ function searchProducts(query, callback) {
 function createPromosTable() {
     db.run(`CREATE TABLE IF NOT EXISTS promos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
+        name TEXT NOT NULL UNIQUE,
         price REAL NOT NULL
     )`, (err) => {
         if (err) {
@@ -842,6 +844,28 @@ function updatePromo(promo, callback) {
     });
 }
 
+function checkNameUniqueness(name, callback) {
+    const trimmedName = name.trim().toLowerCase();
+
+    const query = `
+        SELECT id, 'product' AS source FROM products WHERE LOWER(TRIM(name)) = ?
+        UNION ALL
+        SELECT id, 'promo' AS source FROM promos WHERE LOWER(TRIM(name)) = ?
+    `;
+
+    db.get(query, [trimmedName, trimmedName], (err, row) => {
+        if (err) {
+            console.error('Error al verificar la unicidad del nombre:', err.message);
+            callback(err, null);
+        } else if (row) {
+            callback(null, { isDuplicate: true, source: row.source, product_id: row.id });
+            // console.log(JSON.stringify(row, null, 2));
+        } else {
+            callback(null, { isDuplicate: false });
+        }
+    });
+}
+
 module.exports = {
     createTable,
     insertProduct,
@@ -868,5 +892,6 @@ module.exports = {
     createExpressPromosTable,
     insertExpressPromo,
     getExpressPromosBySaleId,
-    updatePromo
+    updatePromo,
+    checkNameUniqueness
 };
