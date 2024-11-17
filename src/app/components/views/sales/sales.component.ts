@@ -655,6 +655,11 @@ export class SalesComponent implements OnInit {
   }
 
   addExpressPromoToSale(sale: any, i: number) {
+    for (let expressPromo of sale.expressPromos) {
+      if (!expressPromo.confirmed) {
+        return;
+      }
+    }
     const newExpressPromo = {
       products: [],
       total: null,
@@ -666,6 +671,11 @@ export class SalesComponent implements OnInit {
   }
 
   addProductToExpressPromo(expressPromo: any) {
+    for (let product of expressPromo.products) {
+      if (!product.name) {
+        return;
+      }
+    }
     const newExpressPromoProduct = {
       id: null,
       name: null,

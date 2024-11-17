@@ -31,6 +31,7 @@ export class PromosListComponent {
   promoIndexForUpdate: number | null = null;
   existentNameError: boolean = false;
   checkNameError: boolean = false;
+  emptyFieldsError: boolean = false;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
@@ -214,6 +215,11 @@ export class PromosListComponent {
   savePromo() {
     this.clearErrors();
 
+    if (!this.form.price || !this.form.name) {
+      this.emptyFieldsError = true;
+      return;
+    }
+
     const updatedPromo = {
       ...this.form,
       id: this.idForDelete
@@ -221,6 +227,12 @@ export class PromosListComponent {
 
     if (this.promoIndexForUpdate != null) {
       this.promos[this.promoIndexForUpdate] = {...updatedPromo};
+    }
+
+    if (updatedPromo.products.length > 0) {
+      if (!updatedPromo.products[updatedPromo.products.length - 1].name) {
+        updatedPromo.products.pop();
+      }
     }
 
     // console.log(this.idForDelete);
@@ -244,6 +256,7 @@ export class PromosListComponent {
   clearErrors() {
     this.checkNameError = false;
     this.existentNameError = false;
+    this.emptyFieldsError = false;
     this.cdr.detectChanges();
   }
 }

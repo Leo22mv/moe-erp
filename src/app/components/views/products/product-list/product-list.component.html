@@ -80,6 +80,10 @@
             <div class="alert alert-danger" role="alert" *ngIf="existentNameError">
                 Ya existe un producto o promo con el mismo nombre
             </div>
+
+            <div class="alert alert-danger" role="alert" *ngIf="emptyFieldsError">
+                Complete todos los campos obligatorios (*) para continuar
+            </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" class="btn btn-primary" (click)="onUpdateButtonClick()">Guardar</button>
