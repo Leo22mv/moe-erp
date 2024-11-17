@@ -33,6 +33,7 @@ export class ProductListComponent {
   withoutResults: boolean = false;
   existentNameError: boolean = false;
   checkNameError: boolean = false;
+  emptyFieldsError: boolean = false;
 
   constructor(private cdr: ChangeDetectorRef) { }
 
@@ -147,8 +148,6 @@ export class ProductListComponent {
         this.products[index] = JSON.parse(JSON.stringify(this.updateForm));
     }
 
-    this.clearErrors();
-
     const updateModal = document.getElementById('updateModal');
     const modalInstance = (window as any).bootstrap.Modal.getInstance(updateModal) || new (window as any).bootstrap.Modal(updateModal);
     modalInstance.hide();
@@ -190,10 +189,18 @@ export class ProductListComponent {
   clearErrors() {
     this.checkNameError = false;
     this.existentNameError = false;
+    this.emptyFieldsError = false;
     this.cdr.detectChanges();
   }
 
   onUpdateButtonClick() {
+    this.clearErrors();
+    
+    if (!this.updateForm.price || !this.updateForm.name || !this.updateForm.sellPrice || !this.updateForm.stock || !this.updateForm.stock_limit) {
+      this.emptyFieldsError = true;
+      return;
+    }
+
     window.electron.send('check-name-uniqueness', this.updateForm.name);
   }
 }
