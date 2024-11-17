@@ -2,17 +2,16 @@
 
 ## Notas de versiones
 
-### 2.0.2 (Próxima versión)
+### 2.0.2 (Versión actual)
 
 - Solución a bugs:
--- Sistema permite agregar promos express a una venta habiendo otra vacía o sin confirmar.
--- Sistema permite agregar productos a promos express habiendo otro vacío o sin confirmar.
--- Sistema permite agregar productos vacíos al modificar promos.
--- Sistema no muestra alerta por campos obligatorios al modificar promos.
--- Sistema no muestra alerta por campos obligatorios al modificar productos.
--- Sistema realiza múltiples suscripciones al evento de verificación de nombre, haciendo que falle la sección de agregar promos.
+-- Sistema permitía agregar promos express a una venta habiendo otra vacía o sin confirmar.
+-- Sistema permitía agregar productos a promos express habiendo otro vacío o sin confirmar.
+-- Sistema permitía agregar productos vacíos al modificar promos.
+-- Sistema no mostraba alerta por campos obligatorios al modificar promos.
+-- Sistema no mostraba alerta por campos obligatorios al modificar productos.
 
-### 2.0.1 (Versión actual)
+### 2.0.1
 
 - Verificación de nombre existente al agregar productos, para evitar duplicados.
 - Verificación de código de barras existente al agregar productos.
